@@ -1,0 +1,252 @@
+{
+	"compiler": {
+		"version": "0.8.11+commit.d7f03943"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "playerAddress",
+						"type": "address"
+					}
+				],
+				"name": "getActorData",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "bool[6][3]",
+								"name": "artifactsStates",
+								"type": "bool[6][3]"
+							},
+							{
+								"internalType": "bool[6][3]",
+								"name": "treasuresStates",
+								"type": "bool[6][3]"
+							},
+							{
+								"internalType": "bool[3][3]",
+								"name": "toolsStates",
+								"type": "bool[3][3]"
+							},
+							{
+								"internalType": "int8",
+								"name": "hitPoints",
+								"type": "int8"
+							},
+							{
+								"internalType": "uint8",
+								"name": "maxHitPoint",
+								"type": "uint8"
+							},
+							{
+								"internalType": "bool",
+								"name": "isInWorkshopOrOutdoor",
+								"type": "bool"
+							},
+							{
+								"internalType": "uint8",
+								"name": "inRegionIndex",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint8",
+								"name": "inBoxIndex",
+								"type": "uint8"
+							},
+							{
+								"internalType": "bool[22][3]",
+								"name": "times",
+								"type": "bool[22][3]"
+							}
+						],
+						"internalType": "struct HydraEngine.Actor",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "playerAddress",
+						"type": "address"
+					}
+				],
+				"name": "getActorMaxHitPoint",
+				"outputs": [
+					{
+						"internalType": "uint8",
+						"name": "",
+						"type": "uint8"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "playerAddress",
+						"type": "address"
+					}
+				],
+				"name": "getMapData",
+				"outputs": [
+					{
+						"components": [
+							{
+								"components": [
+									{
+										"internalType": "uint8[6][6]",
+										"name": "boxes",
+										"type": "uint8[6][6]"
+									},
+									{
+										"internalType": "enum HydraEngine.Artifacts",
+										"name": "artifact",
+										"type": "uint8"
+									},
+									{
+										"internalType": "enum HydraEngine.Components",
+										"name": "component",
+										"type": "uint8"
+									},
+									{
+										"internalType": "enum HydraEngine.Treasures",
+										"name": "treasure",
+										"type": "uint8"
+									},
+									{
+										"internalType": "uint8[6]",
+										"name": "spentTimes",
+										"type": "uint8[6]"
+									}
+								],
+								"internalType": "struct HydraEngine.MapRegion[6]",
+								"name": "regions",
+								"type": "tuple[6]"
+							},
+							{
+								"internalType": "uint8[4]",
+								"name": "eventInRegions",
+								"type": "uint8[4]"
+							},
+							{
+								"internalType": "bool[6][2][5]",
+								"name": "combatHitDices",
+								"type": "bool[6][2][5]"
+							}
+						],
+						"internalType": "struct HydraEngine.Map",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "playerAddress",
+						"type": "address"
+					}
+				],
+				"name": "getWorkshopData",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "uint8[16][6]",
+								"name": "artifactFragments",
+								"type": "uint8[16][6]"
+							},
+							{
+								"internalType": "uint8[6]",
+								"name": "artifactCheckValue",
+								"type": "uint8[6]"
+							},
+							{
+								"internalType": "uint8[10]",
+								"name": "wastebasket",
+								"type": "uint8[10]"
+							},
+							{
+								"internalType": "uint256[6][6]",
+								"name": "linkPaths",
+								"type": "uint256[6][6]"
+							},
+							{
+								"internalType": "enum HydraEngine.Components[6]",
+								"name": "linkComponents",
+								"type": "uint8[6]"
+							}
+						],
+						"internalType": "struct HydraEngine.Workshop",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "startGame",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/HydraEngine.sol": "HydraEngine"
+		},
+		"evmVersion": "london",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/HydraEngine.sol": {
+			"keccak256": "0x6c169579e9a7d2795711b03f64b048f3dbd4651fc8ed7a867e88374283f38f01",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d19431b371f2674f4cf82747da6ac259ab6b4d821e72dfd1942c53ff069c4917",
+				"dweb:/ipfs/QmeuCErB3XNWUR4VY6KD2upPNabnycX1FUVzebeaNSgCjR"
+			]
+		}
+	},
+	"version": 1
+}
