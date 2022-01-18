@@ -33,7 +33,7 @@ UInt16.MaxValue => 65535
 
 5 00 XX -> S:移动演员位置: XX->inMapRegionIndex
 5 01 00 -> S:Extensive search rule
-5 02 AB -> S:游戏地图事件发生: A->时间类型 B->事件位置
+5 02 AB -> S:游戏地图事件发生: A->事件类型 B->事件位置
 5 03 XX -> S:清除区域搜索进度: XX->inMapRegionIndex
 5 04 XX -> S:移动演员位置: 移动到野外 XX->inMapRegionIndex
 5 05 00 -> S:移动演员位置: 移动到工作室

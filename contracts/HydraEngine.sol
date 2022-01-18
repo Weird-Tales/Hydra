@@ -44,6 +44,8 @@ contract HydraEngine {
     
   }
 
+  event GameEvents(address operator, string[] rCodes);
+
   modifier isGameOver() {
       require(
           _isGameOver[msg.sender] == false,
@@ -52,7 +54,7 @@ contract HydraEngine {
       _;
   }
 
-  function combination(uint32[] memory arrayA, uint32[] memory arrayB) public pure returns (uint32[] memory) {
+  function combination(string[] memory arrayA, string[] memory arrayB) public pure returns (string[] memory) {
     uint32 arrayCount;
     for (uint32 i; i < arrayA.length; i++) {
       arrayCount++;
@@ -61,7 +63,7 @@ contract HydraEngine {
       arrayCount++;
     }
 
-    uint32[] memory tempArray = new uint32[](arrayCount);
+    string[] memory tempArray = new string[](arrayCount);
     for (uint32 i; i < arrayA.length; i++) {
       tempArray[i] = arrayA[i];
     }
@@ -71,98 +73,105 @@ contract HydraEngine {
     return tempArray;
   }
 
-  function createMemoryArray(uint32 element) private pure returns (uint32[] memory) {
-    uint32[] memory memoryArray = new uint32[](1);
-    memoryArray[1] = element;
+  function createArray(string memory element) private pure returns (string[] memory) {
+    string[] memory memoryArray = new string[](1);
+    memoryArray[0] = element;
     return memoryArray;
   }
 
-  function moveActorTo(bool isOutdoorOrInWorkshop, uint8 inMapRegionIndex) external isGameOver returns (uint32[] memory) {
-    // bool _isOutdoorOrInWorkshop = _actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop;
-    // if (_isOutdoorOrInWorkshop == isOutdoorOrInWorkshop) {
-    //   uint8[2] memory _inMapIndex = _actorOfAllPlayers[msg.sender].inMapIndex;
-    //   require(
-    //     _inMapIndex[0] != inMapRegionIndex,
-    //     "invalid move actor"
-    //   );
-    //   uint32[] memory eraseAllProgressMarksRCode = eraseAllProgressMarksFrom(_inMapIndex[0]);
-    //   uint32[] memory usedOneDayRCode = usedOneDay();
-    //   return combination(usedOneDayRCode, eraseAllProgressMarksRCode);
-    // }
-    // // move workshop
-  _actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop = isOutdoorOrInWorkshop;
-  // if (isOutdoorOrInWorkshop == true) {
-  //   _actorOfAllPlayers[msg.sender].inMapIndex[0] = inMapRegionIndex;
-  //   _actorOfAllPlayers[msg.sender].inMapIndex[1] = 0;
-  //   uint32[] memory usedOneDayRCode = usedOneDay();
-  //   return combination(usedOneDayRCode, createMemoryArray(50400));
-  // }
-    uint32[] memory emptyUint32Array;
-    return emptyUint32Array;
-    // else {
-    //   uint32[] memory usedOneDayRCode = usedOneDay();
-    //   uint32[] memory eraseAllProgressMarksRCode = eraseAllProgressMarksFrom(_actorOfAllPlayers[msg.sender].inMapIndex[0]);
-    //   uint32[] memory happendRCode = combination(usedOneDayRCode, eraseAllProgressMarksRCode);
-    //   return combination(happendRCode, createMemoryArray(50500));
-    // }
+  function moveActorTo(bool isOutdoorOrInWorkshop, uint8 inMapRegionIndex) external isGameOver {
+    require(
+      inMapRegionIndex < 6,
+      "inMapRegionIndex out of range"
+    );
+    bool _isOutdoorOrInWorkshop = _actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop;
+    if (_isOutdoorOrInWorkshop == isOutdoorOrInWorkshop) {
+      uint8[2] memory _inMapIndex = _actorOfAllPlayers[msg.sender].inMapIndex;
+      require(
+        _inMapIndex[0] != inMapRegionIndex,
+        "invalid move actor"
+      );
+      string[] memory usedOneDayRCode = usedOneDay();
+      string[] memory eraseAllProgressMarksRCode = eraseAllProgressMarksFrom(_inMapIndex[0]);
+      string[] memory rCodes = combination(usedOneDayRCode, eraseAllProgressMarksRCode);
+      emit GameEvents(msg.sender, rCodes);
+    }
+    _actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop = isOutdoorOrInWorkshop;
+    if (isOutdoorOrInWorkshop == true) {
+      _actorOfAllPlayers[msg.sender].inMapIndex[0] = inMapRegionIndex;
+      _actorOfAllPlayers[msg.sender].inMapIndex[1] = 0;
+      eraseAllProgressMarksFrom(inMapRegionIndex);
+      string[] memory usedOneDayRCode = usedOneDay();
+      string[] memory rCodes = combination(usedOneDayRCode, createArray('50400'));
+      emit GameEvents(msg.sender, rCodes);
+    } else {
+      string[] memory usedOneDayRCode = usedOneDay();
+      string[] memory eraseAllProgressMarksRCode = eraseAllProgressMarksFrom(_actorOfAllPlayers[msg.sender].inMapIndex[0]);
+      string[] memory happendRCode = combination(usedOneDayRCode, eraseAllProgressMarksRCode);
+      string[] memory rCodes = combination(happendRCode, createArray('50500'));
+      _actorOfAllPlayers[msg.sender].inMapIndex[0] = 0;
+      _actorOfAllPlayers[msg.sender].inMapIndex[1] = 0;
+      emit GameEvents(msg.sender, rCodes);
+    }
   }
 
-  function eraseAllProgressMarksFrom(uint8 inMapRegionIndex) private returns (uint32[] memory) {
-    if (inMapRegionIndex == 0) {
-      uint32[] memory emptyUint32Array;
-      return emptyUint32Array;
-    }
+  function eraseAllProgressMarksFrom(uint8 inMapRegionIndex) private returns (string[] memory) {
+    require(
+      inMapRegionIndex < 6,
+      'inMapRegionIndex out of range'
+    );
     uint8[6][6] memory boxes;
     _mapOfAllPlayers[msg.sender].regions[inMapRegionIndex] = boxes;
-    return createMemoryArray(50300 + uint32(inMapRegionIndex));
+    return createArray(string(abi.encodePacked('5030', toString(inMapRegionIndex))));
   }
 
-  function usedOneDay() private returns (uint32[] memory) {
-    _timeTrackOfAllPlayers[msg.sender].spentFreedays += 1;
+  function usedOneDay() private returns (string[] memory) {
+    _timeTrackOfAllPlayers[msg.sender].spentFreedays++;
 
-    uint32[] memory checkDoomsdayRCode = checkDoomsday();
+    string[] memory checkDoomsdayRCode = checkDoomsday();
     if (checkDoomsdayRCode.length > 0) {
-      return combination(checkDoomsdayRCode, createMemoryArray(20000));
+      return combination(checkDoomsdayRCode, createArray('20000'));
     }
 
-    return createMemoryArray(20000);
+    return createArray('20000');
   }
 
-  function mapEventHappend() private returns (uint32[] memory) {
+  function mapEventHappend() private returns (string[] memory) {
     uint8 spentFreedays = _timeTrackOfAllPlayers[msg.sender].spentFreedays;
 
     uint8[7] memory _eventdaysIndex = eventdaysIndex();
     for (uint8 i; i < 7; i++) {
       if (_eventdaysIndex[i] == spentFreedays) {
         // TODO: 随机数
-        uint8[4] memory randomEvents = [1, 2, 3, 4];
+        uint8[4] memory randomEvents = [uint8(1), 2, 3, 4];
         _mapOfAllPlayers[msg.sender].eventInRegions = randomEvents;
-        uint32[] memory mapEventHappendRCode = new uint32[](4);
+        string[4] memory eventTypeStrA = [string("00"), "10", "20", "30"];
+        string[] memory mapEventHappendRCode = new string[](4);
         for (uint32 j; j < 4; j++) {
-          mapEventHappendRCode[j] = 50200 + j * 10 + uint32(randomEvents[j]);
+          mapEventHappendRCode[j] = string(abi.encodePacked('502', eventTypeStrA[j], toString(randomEvents[j])));
         }
         return mapEventHappendRCode;
       }
     }
-    uint32[] memory emptyUint32Array;
-    return emptyUint32Array;
+    string[] memory emptyStrA;
+    return emptyStrA;
   }
 
-  function checkDoomsday() private returns (uint32[] memory) {
+  function checkDoomsday() private returns (string[] memory) {
     TimeTrack memory timeTrack = _timeTrackOfAllPlayers[msg.sender];
     uint8 _doomsdayCountdown = doomsdayCountdown();
 
     if (timeTrack.spentFreedays - timeTrack.delayedDoomsday > _doomsdayCountdown) {
-      uint32[] memory gameOverRCode = gameOver();
-      return combination(gameOverRCode, createMemoryArray(20100));
+      string[] memory gameOverRCode = gameOver();
+      return combination(gameOverRCode, createArray('20100'));
     }
-    uint32[] memory emptyUint32Array;
-    return emptyUint32Array;
+    string[] memory emptyStrA;
+    return emptyStrA;
   }
 
-  function gameOver() private returns (uint32[] memory) {
+  function gameOver() private returns (string[] memory) {
     _isGameOver[msg.sender] = true;
-    return createMemoryArray(10000);
+    return createArray('10000');
   }
 
   function mockRandomNumbers(uint256 randomValue) public view returns (uint8[2] memory randomNumbers) {
@@ -193,7 +202,7 @@ contract HydraEngine {
     uint8[6][6][6] memory regions;
     _mapOfAllPlayers[msg.sender].regions = regions;
     // reload Map - eventInRegions
-    _mapOfAllPlayers[msg.sender].eventInRegions = [0, 0, 0, 0];
+    _mapOfAllPlayers[msg.sender].eventInRegions = [uint8(0), 0, 0, 0];
     // reload Workshop - artifactFragments
     uint8[16][6] memory artifactFragments;
     _workshopOfAllPlayers[msg.sender].artifactFragments = artifactFragments;
@@ -260,7 +269,7 @@ contract HydraEngine {
   }
 
   function artifactCheckValue() public pure returns (uint8[6] memory) {
-    return [4, 4, 4, 4, 4, 4];
+    return [uint8(4), 4, 4, 4, 4, 4];
   }
 
   function deathHitPoint() public pure returns (int8) {
@@ -268,7 +277,7 @@ contract HydraEngine {
   }
 
   function eventdaysIndex() public pure returns (uint8[7] memory) {
-    return [2, 5, 8, 11, 14, 17, 20];
+    return [uint8(2), 5, 8, 11, 14, 17, 20];
   }
 
   function doomsdayCountdown() public pure returns (uint8) {
@@ -290,5 +299,28 @@ contract HydraEngine {
   function timeTrackOfAllPlayers(address playerAddress) external view returns (TimeTrack memory) {
     return _timeTrackOfAllPlayers[playerAddress];
   }
+
+  /**
+   * @dev Converts a `uint8` to its ASCII `string` decimal representation.
+   * OpenZeppelin Contracts v4.4.1 (utils/Strings.sol)
+   */
+  function toString(uint8 value) internal pure returns (string memory) {
+        if (value == 0) {
+            return "0";
+        }
+        uint8 temp = value;
+        uint8 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint8(value % 10)));
+            value /= 10;
+        }
+        return string(buffer);
+    }
 
 }
