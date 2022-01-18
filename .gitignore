@@ -1,3 +1,7 @@
 # truffle build directory
 build/
 contracts/artifacts/
+
+
+# macOS
+.DS_Store
