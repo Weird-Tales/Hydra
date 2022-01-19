@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
 
+import "./RandomSeedInterface.sol";
+
 contract HydraEngine {
   enum Artifacts {artifactQ, artifactW, artifactE, artifactR, artifactT, artifactY}
   enum Components {componentA, componentS, componentD, componentF, componentG, componentH}
@@ -40,18 +42,28 @@ contract HydraEngine {
   mapping(address => TimeTrack) private _timeTrackOfAllPlayers; // player address => timeTrack data
   mapping(address => bool) private _isGameOver; // player address => is game end
 
-  constructor() {
-    
+  RandomSeedInterface private RandomSeed;
+
+  constructor(address randomSeedAddress) {
+    RandomSeed = RandomSeedInterface(randomSeedAddress);
   }
 
   event GameEvents(address operator, string[] rCodes);
 
-  modifier isGameOver() {
-      require(
-          _isGameOver[msg.sender] == false,
-          "GAME OVER"
+  modifier isPlaying() {
+    require(
+      _isGameOver[msg.sender] == false,
+      'GAME OVER'
       );
-      _;
+    _;
+  }
+
+  modifier seedIsUnused() {
+    require(
+      RandomSeed.checkSeed(msg.sender) == false,
+      'seed is used'
+      );
+    _;
   }
 
   function combination(string[] memory arrayA, string[] memory arrayB) public pure returns (string[] memory) {
@@ -79,22 +91,27 @@ contract HydraEngine {
     return memoryArray;
   }
 
-  function moveActorTo(bool isOutdoorOrInWorkshop, uint8 inMapRegionIndex) external isGameOver {
+  event Test(uint8[] numbers);
+
+  function moveActorTo(bool isOutdoorOrInWorkshop, uint8 inMapRegionIndex) external isPlaying seedIsUnused {
     require(
       inMapRegionIndex < 6,
-      "inMapRegionIndex out of range"
-    );
+      'inMapRegionIndex out of range'
+      );
     bool _isOutdoorOrInWorkshop = _actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop;
     if (_isOutdoorOrInWorkshop == isOutdoorOrInWorkshop) {
       uint8[2] memory _inMapIndex = _actorOfAllPlayers[msg.sender].inMapIndex;
       require(
         _inMapIndex[0] != inMapRegionIndex,
-        "invalid move actor"
-      );
-      string[] memory usedOneDayRCode = usedOneDay();
+        'invalid move actor'
+        );
       string[] memory eraseAllProgressMarksRCode = eraseAllProgressMarksFrom(_inMapIndex[0]);
+      string[] memory usedOneDayRCode = usedOneDay();
       string[] memory rCodes = combination(usedOneDayRCode, eraseAllProgressMarksRCode);
+      _actorOfAllPlayers[msg.sender].inMapIndex[0] = inMapRegionIndex;
+      _actorOfAllPlayers[msg.sender].inMapIndex[1] = 0;
       emit GameEvents(msg.sender, rCodes);
+      return;
     }
     _actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop = isOutdoorOrInWorkshop;
     if (isOutdoorOrInWorkshop == true) {
@@ -102,13 +119,12 @@ contract HydraEngine {
       _actorOfAllPlayers[msg.sender].inMapIndex[1] = 0;
       eraseAllProgressMarksFrom(inMapRegionIndex);
       string[] memory usedOneDayRCode = usedOneDay();
-      string[] memory rCodes = combination(usedOneDayRCode, createArray('50400'));
+      string[] memory rCodes = combination(createArray('50400'), usedOneDayRCode);
       emit GameEvents(msg.sender, rCodes);
     } else {
-      string[] memory usedOneDayRCode = usedOneDay();
       string[] memory eraseAllProgressMarksRCode = eraseAllProgressMarksFrom(_actorOfAllPlayers[msg.sender].inMapIndex[0]);
-      string[] memory happendRCode = combination(usedOneDayRCode, eraseAllProgressMarksRCode);
-      string[] memory rCodes = combination(happendRCode, createArray('50500'));
+      string[] memory usedOneDayRCode = usedOneDay();
+      string[] memory rCodes = combination(createArray('50500'), combination(usedOneDayRCode, eraseAllProgressMarksRCode));
       _actorOfAllPlayers[msg.sender].inMapIndex[0] = 0;
       _actorOfAllPlayers[msg.sender].inMapIndex[1] = 0;
       emit GameEvents(msg.sender, rCodes);
@@ -130,9 +146,13 @@ contract HydraEngine {
 
     string[] memory checkDoomsdayRCode = checkDoomsday();
     if (checkDoomsdayRCode.length > 0) {
-      return combination(checkDoomsdayRCode, createArray('20000'));
+      return combination(createArray('20000'), checkDoomsdayRCode);
     }
 
+    string[] memory mapEventHappendRCode = mapEventHappend();
+    if (mapEventHappendRCode.length > 0) {
+      return combination(createArray('20000'), mapEventHappendRCode);
+    }
     return createArray('20000');
   }
 
@@ -142,10 +162,13 @@ contract HydraEngine {
     uint8[7] memory _eventdaysIndex = eventdaysIndex();
     for (uint8 i; i < 7; i++) {
       if (_eventdaysIndex[i] == spentFreedays) {
-        // TODO: 随机数
-        uint8[4] memory randomEvents = [uint8(1), 2, 3, 4];
+        uint8[4] memory randomEvents;
+        uint8[] memory randomNumbers = RandomSeed.getRandomNumber(msg.sender, 0, 4);
+        for (uint8 k; k < 4; k++) {
+          randomEvents[k] = randomNumbers[k];
+        }
         _mapOfAllPlayers[msg.sender].eventInRegions = randomEvents;
-        string[4] memory eventTypeStrA = [string("00"), "10", "20", "30"];
+        string[4] memory eventTypeStrA = [string("0"), "1", "2", "3"];
         string[] memory mapEventHappendRCode = new string[](4);
         for (uint32 j; j < 4; j++) {
           mapEventHappendRCode[j] = string(abi.encodePacked('502', eventTypeStrA[j], toString(randomEvents[j])));
@@ -163,7 +186,7 @@ contract HydraEngine {
 
     if (timeTrack.spentFreedays - timeTrack.delayedDoomsday > _doomsdayCountdown) {
       string[] memory gameOverRCode = gameOver();
-      return combination(gameOverRCode, createArray('20100'));
+      return combination(createArray('20100'), gameOverRCode);
     }
     string[] memory emptyStrA;
     return emptyStrA;
@@ -172,14 +195,6 @@ contract HydraEngine {
   function gameOver() private returns (string[] memory) {
     _isGameOver[msg.sender] = true;
     return createArray('10000');
-  }
-
-  function mockRandomNumbers(uint256 randomValue) public view returns (uint8[2] memory randomNumbers) {
-    uint8[2] memory expandedValues;
-    for (uint256 i; i < 2; i++) {
-        expandedValues[i] = uint8(uint256(keccak256(abi.encode(randomValue + i, block.timestamp, msg.sender))) % 6 + 1);
-    }
-    return expandedValues;
   }
   
   function startGame() external {
