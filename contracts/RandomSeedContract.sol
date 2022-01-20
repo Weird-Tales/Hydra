@@ -18,6 +18,7 @@ contract RandomSeedContract is RandomSeedInterface {
   function requestRandomNumber(address player) external payable returns (bytes32 requestId) {
     rRSIOfAllPlayers[player] = 'MockTest';
     seedOfAllPlayers[player]['MockTest'].seed = 115792089237316195423570985008687907853269984665640564039458;
+    seedOfAllPlayers[player]['MockTest'].isUsed = false;
     return 'MockTest';
   }
 
@@ -37,10 +38,18 @@ contract RandomSeedContract is RandomSeedInterface {
       'seed is used'
       );
     uint256 seed = seedOfAllPlayers[player][id].seed;
+    require(
+      seed != 0,
+      'need request random number'
+      );
     uint8 count = rangeEnd - rangeStart;
     uint8[] memory expandedValues = new uint8[](count);
     for (uint8 i = rangeStart; i < rangeEnd; i++) {
-        expandedValues[i] = uint8(uint256(keccak256(abi.encode(seed, i, player))) % 6);
+        expandedValues[i] = uint8(uint256(keccak256(abi.encode(seed, i))) % 6);
+        require(
+          expandedValues[i] < 6,
+          'The random number created is wrong'
+          );
     }
     seedOfAllPlayers[player][id].isUsed = true;
     return expandedValues;

@@ -48,7 +48,7 @@ contract HydraEngine {
     RandomSeed = RandomSeedInterface(randomSeedAddress);
   }
 
-  event GameEvents(address operator, string[] rCodes);
+  event GameEvents(address operator, string[] rCodes, bool seedIsUsed);
 
   modifier isPlaying() {
     require(
@@ -91,8 +91,6 @@ contract HydraEngine {
     return memoryArray;
   }
 
-  event Test(uint8[] numbers);
-
   function moveActorTo(bool isOutdoorOrInWorkshop, uint8 inMapRegionIndex) external isPlaying seedIsUnused {
     require(
       inMapRegionIndex < 6,
@@ -106,11 +104,11 @@ contract HydraEngine {
         'invalid move actor'
         );
       string[] memory eraseAllProgressMarksRCode = eraseAllProgressMarksFrom(_inMapIndex[0]);
-      string[] memory usedOneDayRCode = usedOneDay();
+      (string[] memory usedOneDayRCode, bool seedIsUsed) = usedOneDay();
       string[] memory rCodes = combination(usedOneDayRCode, eraseAllProgressMarksRCode);
       _actorOfAllPlayers[msg.sender].inMapIndex[0] = inMapRegionIndex;
       _actorOfAllPlayers[msg.sender].inMapIndex[1] = 0;
-      emit GameEvents(msg.sender, rCodes);
+      emit GameEvents(msg.sender, rCodes, seedIsUsed);
       return;
     }
     _actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop = isOutdoorOrInWorkshop;
@@ -118,16 +116,16 @@ contract HydraEngine {
       _actorOfAllPlayers[msg.sender].inMapIndex[0] = inMapRegionIndex;
       _actorOfAllPlayers[msg.sender].inMapIndex[1] = 0;
       eraseAllProgressMarksFrom(inMapRegionIndex);
-      string[] memory usedOneDayRCode = usedOneDay();
+      (string[] memory usedOneDayRCode, bool seedIsUsed) = usedOneDay();
       string[] memory rCodes = combination(createArray('50400'), usedOneDayRCode);
-      emit GameEvents(msg.sender, rCodes);
+      emit GameEvents(msg.sender, rCodes, seedIsUsed);
     } else {
       string[] memory eraseAllProgressMarksRCode = eraseAllProgressMarksFrom(_actorOfAllPlayers[msg.sender].inMapIndex[0]);
-      string[] memory usedOneDayRCode = usedOneDay();
+      (string[] memory usedOneDayRCode, bool seedIsUsed) = usedOneDay();
       string[] memory rCodes = combination(createArray('50500'), combination(usedOneDayRCode, eraseAllProgressMarksRCode));
       _actorOfAllPlayers[msg.sender].inMapIndex[0] = 0;
       _actorOfAllPlayers[msg.sender].inMapIndex[1] = 0;
-      emit GameEvents(msg.sender, rCodes);
+      emit GameEvents(msg.sender, rCodes, seedIsUsed);
     }
   }
 
@@ -141,19 +139,19 @@ contract HydraEngine {
     return createArray(string(abi.encodePacked('5030', toString(inMapRegionIndex))));
   }
 
-  function usedOneDay() private returns (string[] memory) {
+  function usedOneDay() private returns (string[] memory, bool) {
     _timeTrackOfAllPlayers[msg.sender].spentFreedays++;
 
     string[] memory checkDoomsdayRCode = checkDoomsday();
     if (checkDoomsdayRCode.length > 0) {
-      return combination(createArray('20000'), checkDoomsdayRCode);
+      return (combination(createArray('20000'), checkDoomsdayRCode), false);
     }
 
     string[] memory mapEventHappendRCode = mapEventHappend();
     if (mapEventHappendRCode.length > 0) {
-      return combination(createArray('20000'), mapEventHappendRCode);
+      return (combination(createArray('20000'), mapEventHappendRCode), true);
     }
-    return createArray('20000');
+    return (createArray('20000'), false);
   }
 
   function mapEventHappend() private returns (string[] memory) {
