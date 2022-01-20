@@ -5,6 +5,7 @@ const HydraEngine = artifacts.require('HydraEngine');
 const RandomSeedContract = artifacts.require('RandomSeedContract');
 
 contract('HydraEngine-moveActorTo', function (accounts) {
+  // 开始游戏测试，游戏状态。已经开始了，不能再次点开始 TODO
   beforeEach(async function () {
     const randomSeed = await RandomSeedContract.deployed();
     randomSeed.requestRandomNumber(accounts[0]);
@@ -206,7 +207,5 @@ contract('HydraEngine-moveActorTo', function (accounts) {
       }
     });
   });
-
-  // 开始游戏测试，游戏状态。已经开始了，不能再次点开始
 
 });

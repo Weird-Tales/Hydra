@@ -318,22 +318,22 @@ contract HydraEngine {
    * OpenZeppelin Contracts v4.4.1 (utils/Strings.sol)
    */
   function toString(uint8 value) internal pure returns (string memory) {
-        if (value == 0) {
-            return "0";
-        }
-        uint8 temp = value;
-        uint8 digits;
-        while (temp != 0) {
-            digits++;
-            temp /= 10;
-        }
-        bytes memory buffer = new bytes(digits);
-        while (value != 0) {
-            digits -= 1;
-            buffer[digits] = bytes1(uint8(48 + uint8(value % 10)));
-            value /= 10;
-        }
-        return string(buffer);
+    if (value == 0) {
+      return "0";
     }
+    uint8 temp = value;
+    uint8 digits;
+    while (temp != 0) {
+      digits++;
+      temp /= 10;
+    }
+    bytes memory buffer = new bytes(digits);
+    while (value != 0) {
+      digits -= 1;
+      buffer[digits] = bytes1(uint8(48 + uint8(value % 10)));
+      value /= 10;
+    }
+    return string(buffer);
+  }
 
 }

@@ -18,32 +18,30 @@ npm list
 
 ```js
 [
-  4, 1, 1, 0, 0, 3, 4,
-  1, 4, 4, 4, 5, 2, 2,
-  5, 1, 5, 2, 4, 3
+  4, 1, 1, 0, 0, 3, 4, 1, 4, 4,
+  4, 5, 2, 2, 5, 1, 5, 2, 4, 3
 ]
 ```
-
 
 # 函数事件响应API
 
 UInt16.MaxValue => 65535
 
 1 00 00 -> G:Ending the Game  
-1 01 00 -> G:Final Activation
-1 02 00 -> G:The God’s Hand Device
+1 01 00 -> G:Final Activation  
+1 02 00 -> G:The God’s Hand Device  
 
-2 00 00 -> T:UsedOneDay
-2 01 00 -> T:Doomsday
+2 00 00 -> T:UsedOneDay  
+2 01 00 -> T:Doomsday  
 
-3 00 00 -> W:Activating Artifacts
-3 01 00 -> W:Linking
+3 00 00 -> W:Activating Artifacts  
+3 01 00 -> W:Linking  
 
-4 00 00 -> C:Combat
+4 00 00 -> C:Combat  
 
-5 00 XX -> S:移动演员位置: XX->inMapRegionIndex
-5 01 00 -> S:Extensive search rule
-5 02 AB -> S:游戏地图事件发生: A->事件类型 B->事件位置
-5 03 0X -> S:清除区域搜索进度: X->inMapRegionIndex
-5 04 XX -> S:移动演员位置: 移动到野外 XX->inMapRegionIndex
-5 05 00 -> S:移动演员位置: 移动到工作室
+5 00 XX -> S:移动演员位置: XX->inMapRegionIndex  
+5 01 00 -> S:Extensive search rule  
+5 02 AB -> S:游戏地图事件发生: A->事件类型 B->事件位置  
+5 03 0X -> S:清除区域搜索进度: X->inMapRegionIndex  
+5 04 XX -> S:移动演员位置: 移动到野外 XX->inMapRegionIndex  
+5 05 00 -> S:移动演员位置: 移动到工作室  
