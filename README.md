@@ -18,8 +18,8 @@ npm list
 
 ```js
 [
-  4, 1, 1, 0, 0, 3, 4, 1, 4, 4,
-  4, 5, 2, 2, 5, 1, 5, 2, 4, 3
+  5, 2, 2, 1, 1, 4, 5, 2, 5, 5,
+  5, 6, 3, 3, 6, 2, 6, 3, 5, 4
 ]
 ```
 
@@ -30,6 +30,9 @@ UInt16.MaxValue => 65535
 1 00 00 -> G:Ending the Game  
 1 01 00 -> G:Final Activation  
 1 02 00 -> G:The God’s Hand Device  
+1 03 01 -> G:生命值+1
+1 03 02 -> G:生命值-1
+1 04 AB -> G:昏迷: A->1 户外昏迷 B-> 昏迷位置 / A->2 工作室昏迷
 
 2 00 00 -> T:UsedOneDay  
 2 01 00 -> T:Doomsday  
@@ -38,6 +41,9 @@ UInt16.MaxValue => 65535
 3 01 00 -> W:Linking  
 
 4 00 00 -> C:Combat  
+4 01 EF -> C:击中敌人:E->事件位置 F->敌人等级
+4 02 EF -> C:被击中:E->事件位置 F->敌人等级
+4 99 99 -> C:6次双骰子未击中双方 战斗强制结束
 
 5 00 XX -> S:移动演员位置: XX->inMapRegionIndex  
 5 01 00 -> S:Extensive search rule  
@@ -45,3 +51,4 @@ UInt16.MaxValue => 65535
 5 03 0X -> S:清除区域搜索进度: X->inMapRegionIndex  
 5 04 XX -> S:移动演员位置: 移动到野外 XX->inMapRegionIndex  
 5 05 00 -> S:移动演员位置: 移动到工作室  
+5 06 AB -> S:写入探索结果: A->区域坐标1 b->区域坐标2
