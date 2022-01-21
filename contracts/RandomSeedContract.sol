@@ -22,7 +22,7 @@ contract RandomSeedContract is RandomSeedInterface {
     return 'MockTest';
   }
 
-  function getRandomNumber(address player, uint8 rangeStart, uint8 rangeEnd) external returns (uint8[] memory numbers) {
+  function getRandomNumber(address player, uint8 overValue, bool startZero, uint8 rangeStart, uint8 rangeEnd) external returns (uint8[] memory numbers) {
     require(
       rangeEnd > rangeStart,
       'invalid range'
@@ -45,11 +45,11 @@ contract RandomSeedContract is RandomSeedInterface {
     uint8 count = rangeEnd - rangeStart;
     uint8[] memory expandedValues = new uint8[](count);
     for (uint8 i = rangeStart; i < rangeEnd; i++) {
-        expandedValues[i] = uint8(uint256(keccak256(abi.encode(seed, i))) % 6);
-        require(
-          expandedValues[i] < 6,
-          'The random number created is wrong'
-          );
+      uint8 random = uint8(uint256(keccak256(abi.encode(seed, i))) % overValue);
+      if (startZero == false) {
+        random++;
+      }
+      expandedValues[i] = random;
     }
     seedOfAllPlayers[player][id].isUsed = true;
     return expandedValues;
