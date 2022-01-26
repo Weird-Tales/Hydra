@@ -30,12 +30,17 @@ UInt16.MaxValue => 65535
 1 00 00 -> G:Ending the Game  
 1 01 00 -> G:Final Activation  
 1 02 00 -> G:The God’s Hand Device  
-1 03 01 -> G:生命值+1
-1 03 02 -> G:生命值-1
-1 04 AB -> G:昏迷: A->1 户外昏迷 B-> 昏迷位置 / A->2 工作室昏迷
+1 03 01 -> G:生命值+1  
+1 03 02 -> G:生命值-1  
+1 04 AB -> G:昏迷: A->1 户外昏迷 B-> 昏迷位置 / A->2 工作室昏迷  
+1 05 00 -> G:死亡  
 
 2 00 00 -> T:UsedOneDay  
 2 01 00 -> T:Doomsday  
+2 02 AB -> T:找到物品: A0,A1,A2->神器，宝物，零件 / B-> 位置  
+2 03 00 -> T:找到的零件过多，被丢弃
+2 04 00 -> T:完成了小区域的搜索
+2 99 0B -> T:找到完美激活的神器: B-> 位置  
 
 3 00 00 -> W:Activating Artifacts  
 3 01 00 -> W:Linking  

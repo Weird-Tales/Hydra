@@ -18,6 +18,7 @@ contract HydraEngine {
     uint8[16][6] artifactFragments;
     uint8[10] wastebasket;
     uint[6][6] linkPaths;
+    uint8[6] componentsCount;
   }
 
   struct Actor {
@@ -66,16 +67,35 @@ contract HydraEngine {
     _;
   }
 
-  function searching(uint8[6] memory inputs) external isPlaying seedIsUnused {
-    uint8 zeroCount;
-    for (uint8 i; i < 6; i++) {
-      if (inputs[i] == 0) {
-        zeroCount++;
-      }
-    }
+  function searching(uint8[2][2] memory inputs) external isPlaying seedIsUnused {
     require(
-      zeroCount == 4,
-      'wrong inputs format'
+      inputs[0][0] != 0 && inputs[0][0] < 7,
+      'wrong inputs number.0'
+      );
+    require(
+      inputs[1][0] != 0 && inputs[1][0] < 7,
+      'wrong inputs number.1'
+      );
+    require(
+      inputs[0][1] < 6,
+      'wrong inputs index.0'
+      );
+    require(
+      inputs[1][1] < 6,
+      'wrong inputs index.1'
+      );
+    require(
+      inputs[0][1] != inputs[1][1],
+      'wrong inputs same index'
+      );
+    uint8[] memory randomNumbers = RandomSeed.getRandomNumber(msg.sender, 6, false, 0, 2);
+    require(
+      inputs[0][0] == randomNumbers[0],
+      'wrong inputs random.0'
+      );
+    require(
+      inputs[1][0] == randomNumbers[1],
+      'wrong inputs random.1'
       );
     Actor memory actor = _actorOfAllPlayers[msg.sender];
     require(
@@ -83,29 +103,18 @@ contract HydraEngine {
       'wrong actor position'
       );
     uint8[6] memory storageInputs = _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]];
-    zeroCount = 0;
-    for (uint8 i; i < 6; i++) {
-      if (storageInputs[i] == 0) {
-        zeroCount++;
-      }
-    }
     require(
-      zeroCount >= 2,
-      'wrong storageCells format'
-      );
-    for (uint8 i; i < 6; i++) {
-      if (inputs[i] != 0 && storageInputs[i] != 0) {
-        require(
-          false,
-          'wrong inputs index'
-          );
-      }
-      if (inputs[i] != 0 && storageInputs[i] == 0) {
-        storageInputs[i] = inputs[i];
-      }
-    }
+        storageInputs[inputs[0][1]] == 0,
+        'wrong inputs index.0'
+        );
+    require(
+        storageInputs[inputs[1][1]] == 0,
+        'wrong inputs index.1'
+        );
+    storageInputs[inputs[0][1]] = inputs[0][0];
+    storageInputs[inputs[1][1]] = inputs[1][0];
     _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]] = storageInputs;
-    zeroCount = 0;
+    uint8 zeroCount = 0;
     for (uint8 i; i < 6; i++) {
       if (storageInputs[i] == 0) {
         zeroCount++;
@@ -113,11 +122,42 @@ contract HydraEngine {
     }
     if (zeroCount == 0) {
       _actorOfAllPlayers[msg.sender].inMapIndex[1]++;
-      // TODO
+      string[] memory searchingRCode = createRCode('20400');
+      int16 _operationSearchResult = operationSearchResult(storageInputs);
+      if (_operationSearchResult >= 100 || _operationSearchResult <= -1) {
+        string[] memory combatingRCode = combating(_operationSearchResult);
+        searchingRCode = combination(searchingRCode, combatingRCode);
+      } else if (_operationSearchResult >= 11 && _operationSearchResult <= 99) {
+        string[] memory foundItRCode = foundIt(2, actor.inMapIndex[0]);
+        searchingRCode = combination(searchingRCode, foundItRCode);
+      } else if (_operationSearchResult >= 1 && _operationSearchResult <= 10) {
+        string[] memory foundItRCode = foundIt(0, actor.inMapIndex[0]);
+        searchingRCode = combination(searchingRCode, foundItRCode);
+      } else if (_operationSearchResult == 0) {
+        string[] memory foundItRCode = foundIt(3, actor.inMapIndex[0]);
+        searchingRCode = combination(searchingRCode, foundItRCode);
+      }
+      uint8[6] memory _spentTimes = allSpentTimes()[actor.inMapIndex[0]];
+      if (_spentTimes[actor.inMapIndex[1]] == 1) {
+        (string[] memory usedOneDayRCode, bool seedIsUsed) = usedOneDay();
+        emit GameEvents(msg.sender, combination(searchingRCode, usedOneDayRCode), true);
+      } else {
+        emit GameEvents(msg.sender, searchingRCode, true);
+      }
     } else {
       string memory rcodeStr = string(abi.encodePacked('506', toString(actor.inMapIndex[0]), toString(actor.inMapIndex[1])));
-      emit GameEvents(msg.sender, createRCode(rcodeStr), false);
+      emit GameEvents(msg.sender, createRCode(rcodeStr), true);
     }
+  }
+
+  function operationSearchResult(uint8[6] memory numbers) private pure returns (int16) {
+    int16[] memory int16Array = new int16[](6);
+    for (uint8 i; i < 6; i++) {
+      int16Array[i] = int16(int8(numbers[i]));
+    }
+    int16 topNumber = int16Array[0] * 100 + int16Array[1] * 10 + int16Array[2] * 1;
+    int16 bottomNumber = int16Array[3] * 100 + int16Array[4] * 10 + int16Array[5] * 1;
+    return topNumber - bottomNumber;
   }
 
   function combating(int16 searchResult) private returns (string[] memory) {
@@ -149,10 +189,17 @@ contract HydraEngine {
     uint8 index = 200;
     string[] memory combatingRCode;
     while (isLive || usedDiceCount < 6) {
-      uint8[] memory randomNumbers = RandomSeed.getRandomNumber(msg.sender, 6, false, index, index + 1);
+      uint8[] memory randomNumbers = RandomSeed.getRandomNumber(msg.sender, 6, false, index, index + 2);
       if (actorHitDices[randomNumbers[0]] == true || actorHitDices[randomNumbers[1]]) {
         string memory hitRagdollRCode = string(abi.encodePacked('401', toString(actor.inMapIndex[0]), toString(combatLevel)));
-        return combination(createRCode(hitRagdollRCode), combatingRCode);
+        combatingRCode = combination(combatingRCode, createRCode(hitRagdollRCode));
+        string[] memory foundItRCode;
+        if (combatLevel < 4) {
+          foundItRCode = foundIt(2, actor.inMapIndex[0]);
+        } else {
+          foundItRCode = foundIt(1, actor.inMapIndex[0]);
+        }
+        return combination(combatingRCode, foundItRCode);
       }
       if (ragdollHitDice[randomNumbers[0]] == true) {
         gotHitCount++;
@@ -175,22 +222,60 @@ contract HydraEngine {
     }
     if (isLive == false) {
       if ((actor.hitPoints - gotHitCount) == _deathHitPoint) {
-        string[] memory unconsciousRCode = unconscious();
+        string[] memory unconsciousRCode = unconsciousIn(actor.inMapIndex[0]);
         return combination(combatingRCode, unconsciousRCode);
       }
       // if ((actor.hitPoints - gotHitCount) < _deathHitPoint) {
-      return gameOver();
+      return combination(createRCode('10500'), gameOver());
     }
     return combination(combatingRCode, createRCode('4999'));
   }
 
-  function unconscious() private returns (string[] memory) {
+  // level: 0-> artifacts, 1-> treasures, 2-> Components, 3->
+  function foundIt(uint8 level, uint8 regionIndex) private returns (string[] memory) {
+    require(
+      level < 4,
+      'wrong foundIt level'
+      );
+    if (level == 0) {
+      _actorOfAllPlayers[msg.sender].artifactsStates[0][regionIndex] = true;
+      string memory rCode = string(abi.encodePacked('2020', toString(regionIndex)));
+      return createRCode(rCode);
+    } else if (level == 1) {
+      _actorOfAllPlayers[msg.sender].treasuresStates[0][regionIndex] = true;
+      string memory rCode = string(abi.encodePacked('2021', toString(regionIndex)));
+      return createRCode(rCode);
+    } else if (level == 2) {
+      uint8 componentsCount = _workshopOfAllPlayers[msg.sender].componentsCount[regionIndex];
+      componentsCount++;
+      if (componentsCount > 4) {
+        _workshopOfAllPlayers[msg.sender].componentsCount[regionIndex] = 4;
+        string[] memory rCodes = new string[](2);
+        string memory rCode = string(abi.encodePacked('2022', toString(regionIndex)));
+        rCodes[0] = rCode;
+        rCodes[1] = '20300';
+        return rCodes;
+      } else {
+        _workshopOfAllPlayers[msg.sender].componentsCount[regionIndex] = componentsCount;
+        string memory rCode = string(abi.encodePacked('2022', toString(regionIndex)));
+        return createRCode(rCode);
+      }
+    } else if (level == 3) {
+      _workshopOfAllPlayers[msg.sender].componentsCount[regionIndex]++;
+      string memory rCode = string(abi.encodePacked('2990', toString(regionIndex)));
+      return createRCode(rCode);
+    }
+    string[] memory emptyStrA;
+    return emptyStrA;
+  }
+
+  function unconsciousIn(uint8 regionIndex) private returns (string[] memory) {
     _actorOfAllPlayers[msg.sender].hitPoints = deathHitPoint();
     if (_actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop) {
       string[] memory unconsciousRCode = new string[](2);
-      unconsciousRCode[0] = string(abi.encodePacked('1041', toString(_actorOfAllPlayers[msg.sender].inMapIndex[0])));
+      unconsciousRCode[0] = string(abi.encodePacked('1041', toString(regionIndex)));
       unconsciousRCode[1] = '50500';
-      string[] memory eraseAllProgressMarksRcode = eraseAllProgressMarksFrom(_actorOfAllPlayers[msg.sender].inMapIndex[0]);
+      string[] memory eraseAllProgressMarksRcode = eraseAllProgressMarksFrom(regionIndex);
       return combination(unconsciousRCode, eraseAllProgressMarksRcode);
     }
     return createRCode('10420');
