@@ -17,6 +17,7 @@ npm list
 # 测试种子前20个随机骰子
 
 ```js
+Test.createRandomNumber(seed, 6, false, 0, 20);
 [
   5, 2, 2, 1, 1, 4, 5, 2, 5, 5,
   5, 6, 3, 3, 6, 2, 6, 3, 5, 4

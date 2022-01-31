@@ -28,6 +28,7 @@ contract HydraEngine {
     bool[3][3] toolsStates;
     int8 hitPoints;
     bool isOutdoorOrInWorkshop;
+    // 0...5
     uint8[2] inMapIndex;
   }
 
@@ -330,28 +331,28 @@ contract HydraEngine {
   }
 
   function usedOneDay() private returns (string[] memory, bool) {
-    _timeTrackOfAllPlayers[msg.sender].spentFreedays++;
+    uint8 spentFreedays = _timeTrackOfAllPlayers[msg.sender].spentFreedays;
+    spentFreedays++;
+    _timeTrackOfAllPlayers[msg.sender].spentFreedays = spentFreedays;
 
     string[] memory checkDoomsdayRCode = checkDoomsday();
     if (checkDoomsdayRCode.length > 0) {
       return (combination(createRCode('20000'), checkDoomsdayRCode), false);
     }
 
-    string[] memory mapEventHappendRCode = mapEventHappend();
+    string[] memory mapEventHappendRCode = mapEventHappend(spentFreedays);
     if (mapEventHappendRCode.length > 0) {
       return (combination(createRCode('20000'), mapEventHappendRCode), true);
     }
     return (createRCode('20000'), false);
   }
 
-  function mapEventHappend() private returns (string[] memory) {
-    uint8 spentFreedays = _timeTrackOfAllPlayers[msg.sender].spentFreedays;
-
+  function mapEventHappend(uint8 spentFreedays) private returns (string[] memory) {
     uint8[7] memory _eventdaysIndex = eventdaysIndex();
     for (uint8 i; i < 7; i++) {
       if (_eventdaysIndex[i] == spentFreedays) {
         uint8[4] memory randomEvents;
-        uint8[] memory randomNumbers = RandomSeed.getRandomNumber(msg.sender, 6, true, 2, 5);
+        uint8[] memory randomNumbers = RandomSeed.getRandomNumber(msg.sender, 6, true, 2, 6);
         for (uint8 k; k < 4; k++) {
           randomEvents[k] = randomNumbers[k];
         }

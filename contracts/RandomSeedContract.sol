@@ -42,6 +42,11 @@ contract RandomSeedContract is RandomSeedInterface {
       seed != 0,
       'need request random number'
       );
+    seedOfAllPlayers[player][id].isUsed = true;
+    return _createRandomNumber(seed, overValue, startZero, rangeStart, rangeEnd);
+  }
+
+  function _createRandomNumber(uint256 seed, uint8 overValue, bool startZero, uint8 rangeStart, uint8 rangeEnd) internal pure returns (uint8[] memory numbers) {
     uint8 count = rangeEnd - rangeStart;
     uint8[] memory expandedValues = new uint8[](count);
     for (uint8 i = rangeStart; i < rangeEnd; i++) {
@@ -49,9 +54,8 @@ contract RandomSeedContract is RandomSeedInterface {
       if (startZero == false) {
         random++;
       }
-      expandedValues[i] = random;
+      expandedValues[i - rangeStart] = random;
     }
-    seedOfAllPlayers[player][id].isUsed = true;
     return expandedValues;
   }
 

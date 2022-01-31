@@ -34,7 +34,6 @@ contract('HydraEngine-moveActorTo', function (accounts) {
     const moveActorToReceipt = await this.instance.moveActorTo(true, new BN(2), { from: accounts[0] });
 
     expectEvent(moveActorToReceipt, 'GameEvents', {
-      rCodes: ['20000', '50204', '50211', '50221', '50230', '50301'],
       seedIsUsed: true
     });
   });
@@ -93,7 +92,7 @@ contract('HydraEngine-moveActorTo', function (accounts) {
       const moveActorToReceipt = await this.instance.moveActorTo(false, defaultsNumber, { from: accounts[0] });
 
       expectEvent(moveActorToReceipt, 'GameEvents', {
-        rCodes: ['50500', '20000', '50204', '50211', '50221', '50230', '5030' + '4'],
+        rCodes: ['50500', '20000', '50201', '50210', '50220', '50233', '5030' + '4'],
         seedIsUsed: true
       });
     });
@@ -160,7 +159,7 @@ contract('HydraEngine-moveActorTo', function (accounts) {
       const moveActorToReceipt = await this.instance.moveActorTo(true, new BN(2), { from: accounts[0] });
 
       expectEvent(moveActorToReceipt, 'GameEvents', {
-        rCodes: ['20000', '50204', '50211', '50221', '50230', '5030' + '1'],
+        rCodes: ['20000', '50201', '50210', '50220', '50233', '5030' + '1'],
         seedIsUsed: true
       });
     });
