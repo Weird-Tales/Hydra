@@ -22,6 +22,10 @@ Test.createRandomNumber(seed, 6, false, 0, 20);
   5, 2, 2, 1, 1, 4, 5, 2, 5, 5,
   5, 6, 3, 3, 6, 2, 6, 3, 5, 4
 ]
+Test.createRandomNumber(seed, 6, true, 200, 212);
+[
+  1, 2, 3, 5, 1, 4, 2, 2, 5, 4, 1, 2
+]
 ```
 
 # 函数事件响应API
