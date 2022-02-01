@@ -8,24 +8,24 @@ const RandomSeedContractMock = artifacts.require('RandomSeedContractMock');
 contract('RandomSeedContract', function (accounts) {
 
   it('请求随机数后，种子是未使用状态', async function () {
-    const randomSeed = await RandomSeedContract.new();
-    await randomSeed.requestRandomNumber(accounts[0]);
-    const isUsed = await randomSeed.checkSeed(accounts[0]);
+    const randomSeed = await RandomSeedContract.deployed();
+    await randomSeed.requestRandomNumber();
+    const isUsed = await randomSeed.checkSeed();
     expect(isUsed).to.be.false;
   });
   
   it('兑换随机数后，种子是已使用状态', async function () {
-    const randomSeed = await RandomSeedContract.new();
-    await randomSeed.requestRandomNumber(accounts[0]);
-    await randomSeed.getRandomNumber(accounts[0], 6, true, new BN(0), new BN(2));
-    const isUsed = await randomSeed.checkSeed(accounts[0]);
+    const randomSeed = await RandomSeedContract.deployed();
+    await randomSeed.requestRandomNumber();
+    await randomSeed.markRandomSeedUsed();
+    const isUsed = await randomSeed.checkSeed();
     expect(isUsed).to.be.true;
   });
 
   describe('固定种子下，', function () {
     it('startZero=false情况下，位置0~2的随机数应该是5和2', async function () {
       const randomSeedMock = await RandomSeedContractMock.deployed();
-      await randomSeedMock.requestRandomNumber(accounts[0]);
+      await randomSeedMock.requestRandomNumber();
       const seed = new BN('115792089237316195423570985008687907853269984665640564039458');
       const randomNumbers = await randomSeedMock.createRandomNumber(seed, 6, false, 0, 2);
       expect(randomNumbers[0]).to.be.bignumber.equal(new BN(5));

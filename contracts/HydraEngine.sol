@@ -62,11 +62,13 @@ contract HydraEngine {
 
   modifier seedIsUnused() {
     require(
-      RandomSeed.checkSeed(msg.sender) == false,
+      RandomSeed.checkSeed() == false,
       'seed is used'
       );
     _;
   }
+
+  event Test(uint8[6] randomNumbers);
 
   function searching(uint8[2][2] memory inputs) external isPlaying seedIsUnused {
     require(
@@ -89,7 +91,7 @@ contract HydraEngine {
       inputs[0][1] != inputs[1][1],
       'wrong inputs same index'
       );
-    uint8[] memory randomNumbers = RandomSeed.getRandomNumber(msg.sender, 6, false, 0, 2);
+    uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
     require(
       inputs[0][0] == randomNumbers[0],
       'wrong inputs random.0'
@@ -122,7 +124,6 @@ contract HydraEngine {
       }
     }
     if (zeroCount == 0) {
-      _actorOfAllPlayers[msg.sender].inMapIndex[1]++;
       string[] memory searchingRCode = createRCode('20400');
       int16 _operationSearchResult = operationSearchResult(storageInputs);
       if (_operationSearchResult >= 100 || _operationSearchResult <= -1) {
@@ -145,8 +146,11 @@ contract HydraEngine {
       } else {
         emit GameEvents(msg.sender, searchingRCode, true);
       }
+      _actorOfAllPlayers[msg.sender].inMapIndex[1]++;
+      RandomSeed.markRandomSeedUsed();
     } else {
       string memory rcodeStr = string(abi.encodePacked('506', toString(actor.inMapIndex[0]), toString(actor.inMapIndex[1])));
+      RandomSeed.markRandomSeedUsed();
       emit GameEvents(msg.sender, createRCode(rcodeStr), true);
     }
   }
@@ -190,7 +194,7 @@ contract HydraEngine {
     uint8 index = 200;
     string[] memory combatingRCode;
     while (isLive || usedDiceCount < 6) {
-      uint8[] memory randomNumbers = RandomSeed.getRandomNumber(msg.sender, 6, false, index, index + 2);
+      uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, index, index + 2);
       if (actorHitDices[randomNumbers[0]] == true || actorHitDices[randomNumbers[1]]) {
         string memory hitRagdollRCode = string(abi.encodePacked('401', toString(actor.inMapIndex[0]), toString(combatLevel)));
         combatingRCode = combination(combatingRCode, createRCode(hitRagdollRCode));
@@ -299,6 +303,9 @@ contract HydraEngine {
       string[] memory rCodes = combination(usedOneDayRCode, eraseAllProgressMarksRCode);
       _actorOfAllPlayers[msg.sender].inMapIndex[0] = inMapRegionIndex;
       _actorOfAllPlayers[msg.sender].inMapIndex[1] = 0;
+      if (seedIsUsed) {
+        RandomSeed.markRandomSeedUsed();
+      }
       emit GameEvents(msg.sender, rCodes, seedIsUsed);
       return;
     }
@@ -309,6 +316,9 @@ contract HydraEngine {
       eraseAllProgressMarksFrom(inMapRegionIndex);
       (string[] memory usedOneDayRCode, bool seedIsUsed) = usedOneDay();
       string[] memory rCodes = combination(createRCode('50400'), usedOneDayRCode);
+      if (seedIsUsed) {
+        RandomSeed.markRandomSeedUsed();
+      }
       emit GameEvents(msg.sender, rCodes, seedIsUsed);
     } else {
       string[] memory eraseAllProgressMarksRCode = eraseAllProgressMarksFrom(_actorOfAllPlayers[msg.sender].inMapIndex[0]);
@@ -316,6 +326,9 @@ contract HydraEngine {
       string[] memory rCodes = combination(createRCode('50500'), combination(usedOneDayRCode, eraseAllProgressMarksRCode));
       _actorOfAllPlayers[msg.sender].inMapIndex[0] = 0;
       _actorOfAllPlayers[msg.sender].inMapIndex[1] = 0;
+      if (seedIsUsed) {
+        RandomSeed.markRandomSeedUsed();
+      }
       emit GameEvents(msg.sender, rCodes, seedIsUsed);
     }
   }
@@ -352,7 +365,7 @@ contract HydraEngine {
     for (uint8 i; i < 7; i++) {
       if (_eventdaysIndex[i] == spentFreedays) {
         uint8[4] memory randomEvents;
-        uint8[] memory randomNumbers = RandomSeed.getRandomNumber(msg.sender, 6, true, 2, 6);
+        uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, true, 2, 6);
         for (uint8 k; k < 4; k++) {
           randomEvents[k] = randomNumbers[k];
         }

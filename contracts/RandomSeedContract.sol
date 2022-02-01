@@ -15,14 +15,14 @@ contract RandomSeedContract is RandomSeedInterface {
   mapping(address => mapping(bytes32 => Seed)) private seedOfAllPlayers; // player address => random seed
 
 
-  function requestRandomNumber(address player) external payable returns (bytes32 requestId) {
-    rRSIOfAllPlayers[player] = 'MockTest';
-    seedOfAllPlayers[player]['MockTest'].seed = 115792089237316195423570985008687907853269984665640564039458;
-    seedOfAllPlayers[player]['MockTest'].isUsed = false;
+  function requestRandomNumber() external payable returns (bytes32 requestId) {
+    rRSIOfAllPlayers[tx.origin] = 'MockTest';
+    seedOfAllPlayers[tx.origin]['MockTest'].seed = 115792089237316195423570985008687907853269984665640564039458;
+    seedOfAllPlayers[tx.origin]['MockTest'].isUsed = false;
     return 'MockTest';
   }
 
-  function getRandomNumber(address player, uint8 overValue, bool startZero, uint8 rangeStart, uint8 rangeEnd) external returns (uint8[] memory numbers) {
+  function getRandomNumber(uint8 overValue, bool startZero, uint8 rangeStart, uint8 rangeEnd) external returns (uint8[] memory numbers) {
     require(
       rangeEnd > rangeStart,
       'invalid range'
@@ -31,18 +31,17 @@ contract RandomSeedContract is RandomSeedInterface {
       rangeEnd > 0,
       'invalid range'
       );
-    bytes32 id = rRSIOfAllPlayers[player];
-    bool isUsed = seedOfAllPlayers[player][id].isUsed;
+    bytes32 id = rRSIOfAllPlayers[tx.origin];
+    bool isUsed = seedOfAllPlayers[tx.origin][id].isUsed;
     require(
       isUsed == false,
-      'seed is used'
+      'random seed is used'
       );
-    uint256 seed = seedOfAllPlayers[player][id].seed;
+    uint256 seed = seedOfAllPlayers[tx.origin][id].seed;
     require(
       seed != 0,
       'need request random number'
       );
-    seedOfAllPlayers[player][id].isUsed = true;
     return _createRandomNumber(seed, overValue, startZero, rangeStart, rangeEnd);
   }
 
@@ -59,9 +58,14 @@ contract RandomSeedContract is RandomSeedInterface {
     return expandedValues;
   }
 
-  function checkSeed(address player) external view returns (bool isUsed) {
-    bytes32 id = rRSIOfAllPlayers[player];
-    return seedOfAllPlayers[player][id].isUsed;
+  function markRandomSeedUsed() external {
+    bytes32 id = rRSIOfAllPlayers[tx.origin];
+    seedOfAllPlayers[tx.origin][id].isUsed = true;
+  }
+
+  function checkSeed() external view returns (bool isUsed) {
+    bytes32 id = rRSIOfAllPlayers[tx.origin];
+    return seedOfAllPlayers[tx.origin][id].isUsed;
   }
 }
 

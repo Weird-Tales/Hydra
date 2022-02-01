@@ -7,7 +7,7 @@ const RandomSeedContract = artifacts.require('RandomSeedContract');
 contract('HydraEngine-moveActorTo', function (accounts) {
   beforeEach(async function () {
     const randomSeed = await RandomSeedContract.deployed();
-    randomSeed.requestRandomNumber(accounts[0]);
+    randomSeed.requestRandomNumber();
     this.instance = await HydraEngine.new(randomSeed.address);
   });
 
