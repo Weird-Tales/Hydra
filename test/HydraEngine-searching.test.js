@@ -2,6 +2,7 @@ const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test
 const { expect } = require('chai');
 
 const HydraEngine = artifacts.require('HydraEngine');
+const HydraEngineMock = artifacts.require('HydraEngineMock');
 const RandomSeedContract = artifacts.require('RandomSeedContract');
 
 contract('HydraEngine-searching', function (accounts) {
@@ -9,6 +10,29 @@ contract('HydraEngine-searching', function (accounts) {
     this.randomSeed = await RandomSeedContract.new();
     await this.randomSeed.requestRandomNumber();
     this.instance = await HydraEngine.new(this.randomSeed.address);
+    this.instanceMock = await HydraEngineMock.new(this.randomSeed.address);
+  });
+
+/// ---------------------------------------------------------------------------------
+  describe('内部函数测试,', function () {
+    describe('operationSearchResult,', function () {
+      it('写入[5, 2, 5, 2, 5, 2]，结果应该是 273', async function () {
+        const result = await this.instanceMock._operationSearchResult([new BN(5), new BN(2), new BN(5), new BN(2), new BN(5), new BN(2)]);
+
+        expect(result).to.be.bignumber.equal(new BN(273));
+      });
+    });
+
+    describe('combating,', function () {
+      it('参数是 273，应该抛出事件', async function () {
+        const _combatingReceipt = await this.instanceMock._combating(new BN(273));
+
+        expectEvent(_combatingReceipt, 'TestCombating', {
+          rCodes: ['40101', '20220'],
+        });
+      });
+    });
+
   });
 
 /// ---------------------------------------------------------------------------------
@@ -27,14 +51,7 @@ contract('HydraEngine-searching', function (accounts) {
       await this.instance.moveActorTo(true, new BN(1));
       await this.instance.searching([[new BN(5), new BN(0)], [new BN(2), new BN(1)]]);
       const isUsed = await this.randomSeed.checkSeed();
-
       expect(isUsed).to.be.true;
-    });
-
-    it('test', async function () {
-      const result = await this.instance.operationSearchResult([new BN(5), new BN(2), new BN(5), new BN(2), new BN(5), new BN(2)]);
-
-      expect(result).to.be.bignumber.equal(new BN(0));
     });
 
     it('写入全部数据 [5, 0], [2, 1]/ [5, 2], [2, 3] / [5, 4], [2, 5]', async function () {

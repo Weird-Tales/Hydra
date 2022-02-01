@@ -155,7 +155,7 @@ contract HydraEngine {
     }
   }
 
-  function operationSearchResult(uint8[6] memory numbers) private pure returns (int16) {
+  function operationSearchResult(uint8[6] memory numbers) internal pure returns (int16) {
     int16[] memory int16Array = new int16[](6);
     for (uint8 i; i < 6; i++) {
       int16Array[i] = int16(int8(numbers[i]));
@@ -165,7 +165,7 @@ contract HydraEngine {
     return topNumber - bottomNumber;
   }
 
-  function combating(int16 searchResult) private returns (string[] memory) {
+  function combating(int16 searchResult) internal returns (string[] memory) {
     require(
       searchResult >= 100 && searchResult <= 555 || searchResult >= -555 && searchResult <= -1,
       'wrong searchResult range'
@@ -194,8 +194,9 @@ contract HydraEngine {
     uint8 index = 200;
     string[] memory combatingRCode;
     while (isLive || usedDiceCount < 6) {
-      uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, index, index + 2);
-      if (actorHitDices[randomNumbers[0]] == true || actorHitDices[randomNumbers[1]]) {
+      uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, true, index, index + 2);
+      index = index + 2;
+      if (actorHitDices[randomNumbers[0]] == true || actorHitDices[randomNumbers[1]] == true) {
         string memory hitRagdollRCode = string(abi.encodePacked('401', toString(actor.inMapIndex[0]), toString(combatLevel)));
         combatingRCode = combination(combatingRCode, createRCode(hitRagdollRCode));
         string[] memory foundItRCode;
@@ -220,17 +221,14 @@ contract HydraEngine {
         gotHitRCode[1] = '10302';
         combatingRCode = combination(combatingRCode, gotHitRCode);
       }
-      if (ragdollHitDice[randomNumbers[0]] == true && ragdollHitDice[randomNumbers[1]] == true) {
-        usedDiceCount++;
-      }
       isLive = (actor.hitPoints - gotHitCount) > _deathHitPoint;
+      usedDiceCount++;
     }
     if (isLive == false) {
       if ((actor.hitPoints - gotHitCount) == _deathHitPoint) {
         string[] memory unconsciousRCode = unconsciousIn(actor.inMapIndex[0]);
         return combination(combatingRCode, unconsciousRCode);
       }
-      // if ((actor.hitPoints - gotHitCount) < _deathHitPoint) {
       return combination(createRCode('10500'), gameOver());
     }
     return combination(combatingRCode, createRCode('4999'));

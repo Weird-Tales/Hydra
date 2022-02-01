@@ -31,9 +31,17 @@ contract('RandomSeedContract', function (accounts) {
       expect(randomNumbers[0]).to.be.bignumber.equal(new BN(5));
       expect(randomNumbers[1]).to.be.bignumber.equal(new BN(2));
     });
+    it('startZero=true情况下，位置200~202的随机数应该是1和2', async function () {
+      const randomSeedMock = await RandomSeedContractMock.deployed();
+      await randomSeedMock.requestRandomNumber();
+      const seed = new BN('115792089237316195423570985008687907853269984665640564039458');
+      const randomNumbers = await randomSeedMock.createRandomNumber(seed, 6, true, 200, 202);
+      expect(randomNumbers[0]).to.be.bignumber.equal(new BN(1));
+      expect(randomNumbers[1]).to.be.bignumber.equal(new BN(2));
+    });
     it('startZero=true情况下，位置0~2的随机数应该是4和1', async function () {
       const randomSeedMock = await RandomSeedContractMock.deployed();
-      await randomSeedMock.requestRandomNumber(accounts[0]);
+      await randomSeedMock.requestRandomNumber();
       const seed = new BN('115792089237316195423570985008687907853269984665640564039458');
       const randomNumbers = await randomSeedMock.createRandomNumber(seed, 6, true, 0, 2);
       expect(randomNumbers[0]).to.be.bignumber.equal(new BN(4));
@@ -41,7 +49,7 @@ contract('RandomSeedContract', function (accounts) {
     });
     it('startZero=false情况下，位置4~6的随机数应该是1和4', async function () {
       const randomSeedMock = await RandomSeedContractMock.deployed();
-      await randomSeedMock.requestRandomNumber(accounts[0]);
+      await randomSeedMock.requestRandomNumber();
       const seed = new BN('115792089237316195423570985008687907853269984665640564039458');
       const randomNumbers = await randomSeedMock.createRandomNumber(seed, 6, false, 4, 6);
       expect(randomNumbers[0]).to.be.bignumber.equal(new BN(1));
@@ -49,14 +57,14 @@ contract('RandomSeedContract', function (accounts) {
     });
     it('startZero=true情况下，位置0~2的随机数长度应该是2', async function () {
       const randomSeedMock = await RandomSeedContractMock.deployed();
-      await randomSeedMock.requestRandomNumber(accounts[0]);
+      await randomSeedMock.requestRandomNumber();
       const seed = new BN('115792089237316195423570985008687907853269984665640564039458');
       const randomNumbers = await randomSeedMock.createRandomNumber(seed, 6, true, 0, 2);
       expect(randomNumbers.length).to.be.equal(2);
     });
     it('startZero=false情况下，位置4~9的随机数长度应该是5', async function () {
       const randomSeedMock = await RandomSeedContractMock.deployed();
-      await randomSeedMock.requestRandomNumber(accounts[0]);
+      await randomSeedMock.requestRandomNumber();
       const seed = new BN('115792089237316195423570985008687907853269984665640564039458');
       const randomNumbers = await randomSeedMock.createRandomNumber(seed, 6, false, 4, 9);
       expect(randomNumbers.length).to.be.equal(5);
