@@ -68,8 +68,6 @@ contract HydraEngine {
     _;
   }
 
-  event Test(uint8[6] randomNumbers);
-
   function searching(uint8[2][2] memory inputs) external isPlaying seedIsUnused {
     require(
       inputs[0][0] != 0 && inputs[0][0] < 7,
@@ -107,13 +105,13 @@ contract HydraEngine {
       );
     uint8[6] memory storageInputs = _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]];
     require(
-        storageInputs[inputs[0][1]] == 0,
-        'wrong inputs index.0'
-        );
+      storageInputs[inputs[0][1]] == 0,
+      'wrong inputs index.0'
+      );
     require(
-        storageInputs[inputs[1][1]] == 0,
-        'wrong inputs index.1'
-        );
+      storageInputs[inputs[1][1]] == 0,
+      'wrong inputs index.1'
+      );
     storageInputs[inputs[0][1]] = inputs[0][0];
     storageInputs[inputs[1][1]] = inputs[1][0];
     _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]] = storageInputs;
