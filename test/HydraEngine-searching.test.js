@@ -63,7 +63,7 @@ contract('HydraEngine-searching', function (accounts) {
       const searchingReceipt = await this.instance.searching([[new BN(5), new BN(4)], [new BN(2), new BN(5)]], { from: accounts[0], gas: 6721975 });
 
       expectEvent(searchingReceipt, 'GameEvents', {
-        rCodes: ['20000', '50204', '50211', '50221', '50230', '50301'],
+        rCodes: ['20400', '40111', '20221', '20000', '50201', '50210', '50220', '50233'],
         seedIsUsed: true
       });
     });
@@ -131,22 +131,5 @@ contract('HydraEngine-searching', function (accounts) {
     });
 
   });
-
-  // it('非 0~5 的参数会捕获异常', async function () {
-  //   const moveActorToReceipt = await this.instance.combating(new BN(-1), { from: accounts[0] });
-  //   expectEvent(moveActorToReceipt, 'GameEvents', {
-  //     rCodes: ['20000', '50204', '50211', '50221', '50230', '50301'],
-  //     seedIsUsed: true
-  //   });
-  // });
-
-  // it('非 0~5 的参数会捕获异常', async function () {
-  //   const numbers = [new BN(6), new BN(4), new BN(3), new BN(2), new BN(2), new BN(2)]
-  //   const moveActorToReceipt = await this.instance.operationSearchResult(numbers, { from: accounts[0] });
-  //   expectEvent(moveActorToReceipt, 'GameEvents', {
-  //     rCodes: ['20000', '50204', '50211', '50221', '50230', '50301'],
-  //     seedIsUsed: true
-  //   });
-  // });
 
 });
