@@ -29,4 +29,12 @@ contract HydraEngineMock is HydraEngine {
     _actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop = value;
   }
 
+  function changeTimeTrack_test(uint8 spentFreedays, uint8 handOfGodEnergy, uint8 delayedDoomsday) public {
+    TimeTrack memory timeTrack;
+    timeTrack.spentFreedays = spentFreedays;
+    timeTrack.handOfGodEnergy = handOfGodEnergy;
+    timeTrack.delayedDoomsday = delayedDoomsday;
+    _timeTrackOfAllPlayers[msg.sender] = timeTrack;
+  }
+
 }

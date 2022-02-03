@@ -68,6 +68,62 @@ contract HydraEngine {
     _;
   }
 
+  // function activatingArtifacts(uint8[2][2] memory inputs) external isPlaying seedIsUnused {
+  //   uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
+  //   playerInputsCheck(inputs, randomNumbers);
+  //   Actor memory actor = _actorOfAllPlayers[msg.sender];
+  //   require(
+  //     actor.isOutdoorOrInWorkshop == false,
+  //     'wrong actor position'
+  //     );
+  //   uint8[6] memory storageInputs = _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]];
+  //   require(
+  //     storageInputs[inputs[0][1]] == 0,
+  //     'wrong inputs index.0'
+  //     );
+  //   require(
+  //     storageInputs[inputs[1][1]] == 0,
+  //     'wrong inputs index.1'
+  //     );
+
+
+
+  //   require(
+  //     inputs[0][1] != inputs[1][1],
+  //     'wrong inputs same index'
+  //     );
+  // }
+
+  function startHandOfGodEnergy() external isPlaying {
+    TimeTrack memory timeTrack = _timeTrackOfAllPlayers[msg.sender];
+    require(
+      timeTrack.handOfGodEnergy > 2,
+      'not enough energy'
+      );
+    require(
+      timeTrack.delayedDoomsday < 7,
+      'doomsday cannot be delayed indefinitely'
+      );
+    string[] memory startRCode;
+    if (timeTrack.handOfGodEnergy == 6) {
+      timeTrack.handOfGodEnergy = 0;
+      startRCode = createRCode('10202');
+      timeTrack.delayedDoomsday = timeTrack.delayedDoomsday + 2;
+      startRCode = combination(startRCode, createRCode('10204'));
+      if (timeTrack.delayedDoomsday > 7) {
+        timeTrack.delayedDoomsday = 7;
+        startRCode = combination(startRCode, createRCode('10205'));
+      }
+    } else if (timeTrack.handOfGodEnergy >= 3) {
+      timeTrack.handOfGodEnergy = timeTrack.handOfGodEnergy - 3;
+      startRCode = createRCode('10201');
+      timeTrack.delayedDoomsday++;
+      startRCode = combination(startRCode, createRCode('10203'));
+    }
+    _timeTrackOfAllPlayers[msg.sender] = timeTrack;
+    emit GameEvents(msg.sender, startRCode, false);
+  }
+
   function restingActor(uint8 day) external isPlaying seedIsUnused {
     require(
       day < 13,
