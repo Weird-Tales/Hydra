@@ -105,38 +105,14 @@ contract HydraEngine {
       }
     }
     emit GameEvents(msg.sender, restingRCode, finallySeedIsUsed);
-    return;
   }
 
   function searching(uint8[2][2] memory inputs) external isPlaying seedIsUnused {
-    require(
-      inputs[0][0] != 0 && inputs[0][0] < 7,
-      'wrong inputs number.0'
-      );
-    require(
-      inputs[1][0] != 0 && inputs[1][0] < 7,
-      'wrong inputs number.1'
-      );
-    require(
-      inputs[0][1] < 6,
-      'wrong inputs index.0'
-      );
-    require(
-      inputs[1][1] < 6,
-      'wrong inputs index.1'
-      );
+    uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
+    playerInputsCheck(inputs, randomNumbers);
     require(
       inputs[0][1] != inputs[1][1],
       'wrong inputs same index'
-      );
-    uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
-    require(
-      inputs[0][0] == randomNumbers[0],
-      'wrong inputs random.0'
-      );
-    require(
-      inputs[1][0] == randomNumbers[1],
-      'wrong inputs random.1'
       );
     Actor memory actor = _actorOfAllPlayers[msg.sender];
     require(
@@ -191,6 +167,33 @@ contract HydraEngine {
       RandomSeed.markRandomSeedUsed();
       emit GameEvents(msg.sender, createRCode(rcodeStr), true);
     }
+  }
+
+  function playerInputsCheck(uint8[2][2] memory inputs, uint8[] memory randomNumbers) internal pure {
+    require(
+      inputs[0][0] != 0 && inputs[0][0] < 7,
+      'wrong inputs number.0'
+      );
+    require(
+      inputs[1][0] != 0 && inputs[1][0] < 7,
+      'wrong inputs number.1'
+      );
+    require(
+      inputs[0][1] < 6,
+      'wrong inputs index.0'
+      );
+    require(
+      inputs[1][1] < 6,
+      'wrong inputs index.1'
+      );
+    require(
+      inputs[0][0] == randomNumbers[0],
+      'wrong inputs random.0'
+      );
+    require(
+      inputs[1][0] == randomNumbers[1],
+      'wrong inputs random.1'
+      );
   }
 
   function operationSearchResult(uint8[6] memory numbers) internal pure returns (int16) {
@@ -273,7 +276,7 @@ contract HydraEngine {
   }
 
   // level: 0-> artifacts, 1-> treasures, 2-> Components, 3->
-  function foundIt(uint8 level, uint8 regionIndex) private returns (string[] memory) {
+  function foundIt(uint8 level, uint8 regionIndex) internal returns (string[] memory) {
     require(
       level < 4,
       'wrong foundIt level'
@@ -310,7 +313,7 @@ contract HydraEngine {
     return emptyStrA;
   }
 
-  function unconsciousIn(uint8 regionIndex) private returns (string[] memory) {
+  function unconsciousIn(uint8 regionIndex) internal returns (string[] memory) {
     _actorOfAllPlayers[msg.sender].hitPoints = deathHitPoint();
     if (_actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop) {
       string[] memory unconsciousRCode = new string[](2);
@@ -369,7 +372,7 @@ contract HydraEngine {
     }
   }
 
-  function eraseAllProgressMarksFrom(uint8 inMapRegionIndex) private returns (string[] memory) {
+  function eraseAllProgressMarksFrom(uint8 inMapRegionIndex) internal returns (string[] memory) {
     require(
       inMapRegionIndex < 6,
       'inMapRegionIndex out of range'
@@ -379,7 +382,7 @@ contract HydraEngine {
     return createRCode(string(abi.encodePacked('5030', toString(inMapRegionIndex))));
   }
 
-  function usedOneDay() private returns (string[] memory, bool) {
+  function usedOneDay() internal returns (string[] memory, bool) {
     uint8 spentFreedays = _timeTrackOfAllPlayers[msg.sender].spentFreedays;
     spentFreedays++;
     _timeTrackOfAllPlayers[msg.sender].spentFreedays = spentFreedays;
@@ -396,7 +399,7 @@ contract HydraEngine {
     return (createRCode('20000'), false);
   }
 
-  function mapEventHappend(uint8 spentFreedays) private returns (string[] memory) {
+  function mapEventHappend(uint8 spentFreedays) internal returns (string[] memory) {
     uint8[7] memory _eventdaysIndex = eventdaysIndex();
     for (uint8 i; i < 7; i++) {
       if (_eventdaysIndex[i] == spentFreedays) {
@@ -418,7 +421,7 @@ contract HydraEngine {
     return emptyStrA;
   }
 
-  function checkDoomsday() private returns (string[] memory) {
+  function checkDoomsday() internal returns (string[] memory) {
     TimeTrack memory timeTrack = _timeTrackOfAllPlayers[msg.sender];
     uint8 _doomsdayCountdown = doomsdayCountdown();
 
