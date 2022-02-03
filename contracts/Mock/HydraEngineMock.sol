@@ -8,7 +8,7 @@ contract HydraEngineMock is HydraEngine {
   constructor(address randomSeedAddress) HydraEngine(randomSeedAddress) {
   }
 
-  function _operationSearchResult(uint8[6] memory numbers) public view returns (int16) {
+  function _operationSearchResult(uint8[6] memory numbers) public pure returns (int16) {
     return operationSearchResult(numbers);
   }
 
@@ -18,6 +18,15 @@ contract HydraEngineMock is HydraEngine {
     string[] memory rCodes = combating(searchResult);
     emit TestCombating(rCodes);
     return rCodes;
+  }
+  
+/// ---------------------------------------------------------------------------------
+  function changeActor_hitPoints_test(int8 value) public {
+    _actorOfAllPlayers[msg.sender].hitPoints = value;
+  }
+
+  function changeActor_isOutdoorOrInWorkshop_test(bool value) public {
+    _actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop = value;
   }
 
 }

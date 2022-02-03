@@ -38,11 +38,11 @@ contract HydraEngine {
     uint8 delayedDoomsday;
   }
 
-  mapping(address => Map) private _mapOfAllPlayers; // player address => map data
-  mapping(address => Workshop) private _workshopOfAllPlayers; // player address => workshop data
-  mapping(address => Actor) private _actorOfAllPlayers; // player address => actor data
-  mapping(address => TimeTrack) private _timeTrackOfAllPlayers; // player address => timeTrack data
-  mapping(address => bool) private _isGameOver; // player address => is game end
+  mapping(address => Map) internal _mapOfAllPlayers; // player address => map data
+  mapping(address => Workshop) internal _workshopOfAllPlayers; // player address => workshop data
+  mapping(address => Actor) internal _actorOfAllPlayers; // player address => actor data
+  mapping(address => TimeTrack) internal _timeTrackOfAllPlayers; // player address => timeTrack data
+  mapping(address => bool) internal _isGameOver; // player address => is game end
 
   RandomSeedInterface private RandomSeed;
 
@@ -66,6 +66,46 @@ contract HydraEngine {
       'seed is used'
       );
     _;
+  }
+
+  function restingActor(uint8 day) external isPlaying seedIsUnused {
+    require(
+      day < 13,
+      'taking too long a break'
+      );
+    bool isOutdoorOrInWorkshop = _actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop;
+    string[] memory restingRCode;
+    if (isOutdoorOrInWorkshop) {
+      restingRCode = createRCode('40300');
+    } else {
+      restingRCode = createRCode('40301');
+    }
+    bool finallySeedIsUsed;
+    for (uint8 i; i < day; i++) {
+      (string[] memory usedOneDayRCode, bool seedIsUsed) = usedOneDay();
+      if (seedIsUsed == true) {
+        finallySeedIsUsed = true;
+      }
+      restingRCode = combination(restingRCode, usedOneDayRCode);
+      if (_actorOfAllPlayers[msg.sender].hitPoints >= 0) {
+        _actorOfAllPlayers[msg.sender].hitPoints = 0;
+        restingRCode = combination(restingRCode, createRCode('40303'));
+      } else {
+        _actorOfAllPlayers[msg.sender].hitPoints++;
+        restingRCode = combination(restingRCode, createRCode('40302'));
+      }
+    }
+    if (day > 2 && isOutdoorOrInWorkshop == false) {
+      if (_actorOfAllPlayers[msg.sender].hitPoints >= 0) {
+        _actorOfAllPlayers[msg.sender].hitPoints = 0;
+        restingRCode = combination(restingRCode, createRCode('40305'));
+      } else {
+        _actorOfAllPlayers[msg.sender].hitPoints++;
+        restingRCode = combination(restingRCode, createRCode('40304'));
+      }
+    }
+    emit GameEvents(msg.sender, restingRCode, finallySeedIsUsed);
+    return;
   }
 
   function searching(uint8[2][2] memory inputs) external isPlaying seedIsUnused {

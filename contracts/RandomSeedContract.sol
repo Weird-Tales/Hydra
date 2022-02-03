@@ -22,7 +22,7 @@ contract RandomSeedContract is RandomSeedInterface {
     return 'MockTest';
   }
 
-  function getRandomNumber(uint8 overValue, bool startZero, uint8 rangeStart, uint8 rangeEnd) external returns (uint8[] memory numbers) {
+  function getRandomNumber(uint8 overValue, bool startZero, uint8 rangeStart, uint8 rangeEnd) external view returns (uint8[] memory numbers) {
     require(
       rangeEnd > rangeStart,
       'invalid range'
