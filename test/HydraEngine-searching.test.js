@@ -92,7 +92,7 @@ contract('HydraEngine-searching', function (accounts) {
         'wrong inputs index.1',
       );
       await expectRevert(
-        this.instance.searching([[new BN(1), new BN(1)], [new BN(1), new BN(1)]], { from: accounts[0] }),
+        this.instance.searching([[new BN(5), new BN(1)], [new BN(2), new BN(1)]], { from: accounts[0] }),
         'wrong inputs same index',
       );
     });
