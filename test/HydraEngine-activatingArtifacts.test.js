@@ -21,6 +21,56 @@ contract('HydraEngine-activatingArtifacts', function (accounts) {
       expect(result[1].index).to.be.bignumber.equal(new BN(4));
     });
   });
+
+  describe('_removeEmptyFragmentsEnergy测试，', function () {
+    it('top区0和4相同的输入，应该都等于0', async function () {
+      let inputs = [];
+      for (let i = 0; i < 16; i++) {
+        inputs[i] = new BN(0);
+      }
+      inputs[0] = 5;
+      inputs[4] = 5;
+      const result = await this.instanceMock._removeEmptyFragmentsEnergy(inputs);
+      expect(result[0]).to.be.bignumber.equal(new BN(0));
+      expect(result[4]).to.be.bignumber.equal(new BN(0));
+    });
+
+    it('top区11和15相同的输入，应该都等于0', async function () {
+      let inputs = [];
+      for (let i = 0; i < 16; i++) {
+        inputs[i] = new BN(0);
+      }
+      inputs[11] = 1;
+      inputs[15] = 1;
+      const result = await this.instanceMock._removeEmptyFragmentsEnergy(inputs);
+      expect(result[11]).to.be.bignumber.equal(new BN(0));
+      expect(result[15]).to.be.bignumber.equal(new BN(0));
+    });
+
+    it('top区1和5不相同的输入，应该都等于原值', async function () {
+      let inputs = [];
+      for (let i = 0; i < 16; i++) {
+        inputs[i] = new BN(0);
+      }
+      inputs[1] = 5;
+      inputs[5] = 6;
+      const result = await this.instanceMock._removeEmptyFragmentsEnergy(inputs);
+      expect(result[1]).to.be.bignumber.equal(new BN(5));
+      expect(result[5]).to.be.bignumber.equal(new BN(6));
+    });
+
+    it('top区8和12不相同的输入，应该都等于原值', async function () {
+      let inputs = [];
+      for (let i = 0; i < 16; i++) {
+        inputs[i] = new BN(0);
+      }
+      inputs[8] = 1;
+      inputs[12] = 3;
+      const result = await this.instanceMock._removeEmptyFragmentsEnergy(inputs);
+      expect(result[8]).to.be.bignumber.equal(new BN(1));
+      expect(result[12]).to.be.bignumber.equal(new BN(3));
+    });
+  });
   
   describe('_checkArtifactFragmentsInputTop测试，', function () {
     it('前8个元素不是0的情况下，应该判断top=false', async function () {

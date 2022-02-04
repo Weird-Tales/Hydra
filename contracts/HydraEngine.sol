@@ -135,6 +135,22 @@ contract HydraEngine {
   //   //   );
   // }
 
+  function removeEmptyFragmentsEnergy(uint8[16] memory storageInputs) internal pure returns (uint8[16] memory resultStorageInputs) {
+    for (uint8 i; i < 4; i++) {
+      if (storageInputs[i] == storageInputs[i + 4]) {
+        storageInputs[i] = 0;
+        storageInputs[i + 4] = 0;
+      }
+    }
+    for (uint8 i = 8; i < 12; i++) {
+      if (storageInputs[i] == storageInputs[i + 4]) {
+        storageInputs[i] = 0;
+        storageInputs[i + 4] = 0;
+      }
+    }
+    return storageInputs;
+  }
+
   function inputArraysMappingTo(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex)
     internal pure returns (PlayerInput[2] memory playerInputs) {
     PlayerInput[2] memory _playerInputs;

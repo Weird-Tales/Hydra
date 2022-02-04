@@ -27,6 +27,10 @@ contract HydraEngineMock is HydraEngine {
   function _inputArraysMappingTo(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex) public pure returns (PlayerInput[2] memory) {
     return inputArraysMappingTo(inputA, inputAIndex, inputB, inputBIndex);
   }
+
+  function _removeEmptyFragmentsEnergy(uint8[16] memory storageInputs) public pure returns (uint8[16] memory) {
+    return removeEmptyFragmentsEnergy(storageInputs);
+  }
   
 /// ---------------------------------------------------------------------------------
   function changeActor_hitPoints_test(int8 value) public {
