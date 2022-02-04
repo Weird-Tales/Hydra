@@ -11,6 +11,44 @@ contract('HydraEngine-activatingArtifacts', function (accounts) {
     this.instanceMock = await HydraEngineMock.new(this.randomSeed.address);
   });
 
+  describe('_inputArraysMappingTo测试，', function () {
+    it('函数应该测试正常映射', async function () {
+      // uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex
+      const result = await this.instanceMock._inputArraysMappingTo(new BN(1), new BN(2), new BN(3), new BN(4));
+      expect(result[0].number).to.be.bignumber.equal(new BN(1));
+      expect(result[0].index).to.be.bignumber.equal(new BN(2));
+      expect(result[1].number).to.be.bignumber.equal(new BN(3));
+      expect(result[1].index).to.be.bignumber.equal(new BN(4));
+    });
+  });
+  
+  describe('_checkArtifactFragmentsInputTop测试，', function () {
+    it('前8个元素不是0的情况下，应该判断top=false', async function () {
+      let inputs = [];
+      for (let i = 0; i < 16; i++) {
+        inputs[i] = new BN(0);
+      }
+      for (let i = 0; i < 8; i++) {
+        inputs[i] = new BN(1);
+      }
+      const result = await this.instanceMock._checkArtifactFragmentsInputTop(inputs);
+      expect(result).to.be.false;
+    });
+
+    it('前8个元素有0的情况下，应该判断top=true', async function () {
+      let inputs = [];
+      for (let i = 0; i < 16; i++) {
+        inputs[i] = new BN(0);
+      }
+      for (let i = 0; i < 5; i++) {
+        inputs[i] = new BN(1);
+      }
+
+      const result = await this.instanceMock._checkArtifactFragmentsInputTop(inputs);
+      expect(result).to.be.true;
+    });
+  });
+
   describe('startHandOfGodEnergy测试，', function () {
     it('异常数据，应该抛出异常', async function () {
       await expectRevert(
