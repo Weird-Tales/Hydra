@@ -2,6 +2,7 @@
 pragma solidity 0.8.11;
 
 import "./RandomSeedInterface.sol";
+import "./HydraEngineConfig.sol";
 
 contract HydraEngine {
   enum Artifacts {artifactQ, artifactW, artifactE, artifactR, artifactT, artifactY}
@@ -82,58 +83,53 @@ contract HydraEngine {
   //   uint8[6] componentsCount;
   // }
 
-  // function activatingArtifacts(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex, uint8 artifactIndex) external isPlaying seedIsUnused {
-  //   Actor memory actor = _actorOfAllPlayers[msg.sender];
-  //   require(
-  //     actor.isOutdoorOrInWorkshop == false,
-  //     'wrong actor position'
-  //     );
-  //   require(
-  //     artifactIndex < 6,
-  //     'wrong artifactIndex'
-  //     );
-  //   require(
-  //     actor.artifactsStates[1][artifactIndex] == false,
-  //     'cannot be reactivated'
-  //     );
-  //   uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
-  //   playerInputsCheck(inputs, randomNumbers, 8);
-  //   uint8[16] memory storageInputs = _workshopOfAllPlayers[msg.sender].artifactFragments[artifactIndex];
-  //   bool isTop = checkArtifactFragmentsInputTop(storageInputs);
-  //   if (isTop == false) {
-  //     inputs[0][1] = inputs[0][1] + 8;
-  //     inputs[1][1] = inputs[1][1] + 8;
-  //   }
-  //   require(
-  //     storageInputs[inputs[0][1]] == 0,
-  //     'wrong inputs index.0'
-  //     );
-  //   if (storageInputs[inputs[1][1]] == 0) {
-  //     storageInputs[inputs[0][1]] = inputs[0][0];
-  //     storageInputs[inputs[1][1]] = inputs[1][0];
-  //     _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]] = storageInputs;
-  //   } else {
+  function activatingArtifacts(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex, uint8 artifactIndex) external isPlaying seedIsUnused {
+    Actor memory actor = _actorOfAllPlayers[msg.sender];
+    require(
+      actor.isOutdoorOrInWorkshop == false,
+      'wrong actor position'
+      );
+    require(
+      artifactIndex < 6,
+      'wrong artifactIndex'
+      );
+    require(
+      actor.artifactsStates[1][artifactIndex] == false,
+      'cannot be reactivated'
+      );
+    uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
+    PlayerInput[2] memory inputs = inputArraysMappingTo(inputA, inputAIndex, inputB, inputBIndex);
+    playerInputsCheck(inputs, randomNumbers, 8);
+    uint8[16] memory storageInputs = _workshopOfAllPlayers[msg.sender].artifactFragments[artifactIndex];
+    bool isTop = checkArtifactFragmentsInputTop(storageInputs);
+    if (isTop == false) {
+      inputs[0].index = inputs[0].index + 8;
+      inputs[1].index = inputs[1].index + 8;
+    }
+    require(
+      storageInputs[inputs[0].index] == 0,
+      'wrong inputs index.0'
+      );
+    if (storageInputs[inputs[1].index] == 0) {
+      storageInputs[inputs[0].index] = inputs[0].number;
+      storageInputs[inputs[1].index] = inputs[1].number;
+      _workshopOfAllPlayers[msg.sender].artifactFragments[artifactIndex] = storageInputs;
+    } else {
 
-  //   }
-  //   // 数据格式校验完毕；
-  //   // 如果不擦除；直接写入2个数据
-  //   // 写入第一个，执行擦除，再写入第二个；
-  //   storageInputs[inputs[0][1]] = inputs[0][0];
-  //   storageInputs[inputs[1][1]] = inputs[1][0];
-  //   _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]] = storageInputs;
-  //   uint8 zeroCount = 0;
-  //   for (uint8 i; i < 6; i++) {
-  //     if (storageInputs[i] == 0) {
-  //       zeroCount++;
-  //     }
-  //   }
+    }
+    uint8 zeroCount = 0;
+    for (uint8 i; i < 6; i++) {
+      if (storageInputs[i] == 0) {
+        zeroCount++;
+      }
+    }
 
 
-  //   // require(
-  //   //   storageInputs[inputs[1][1]] == 0,
-  //   //   'wrong inputs index.1'
-  //   //   );
-  // }
+    // require(
+    //   storageInputs[inputs[1][1]] == 0,
+    //   'wrong inputs index.1'
+    //   );
+  }
 
   function removeEmptyFragmentsEnergy(uint8[16] memory storageInputs) internal pure returns (uint8[16] memory resultStorageInputs) {
     for (uint8 i; i < 4; i++) {
@@ -287,7 +283,7 @@ contract HydraEngine {
         string[] memory foundItRCode = foundIt(3, actor.inMapIndex[0]);
         searchingRCode = combination(searchingRCode, foundItRCode);
       }
-      uint8[6] memory _spentTimes = allSpentTimes()[actor.inMapIndex[0]];
+      uint8[6] memory _spentTimes = HydraEngineConfig.allSpentTimes()[actor.inMapIndex[0]];
       if (_spentTimes[actor.inMapIndex[1]] == 1) {
         (string[] memory usedOneDayRCode, bool seedIsUsed) = usedOneDay();
         emit GameEvents(msg.sender, combination(searchingRCode, usedOneDayRCode), true);
@@ -361,13 +357,13 @@ contract HydraEngine {
     } else if (searchResult >= 500 && searchResult <= 555 || searchResult >= -401 && searchResult <= -555) {
       combatLevel = 4;
     }
-    bool[6][2][5] memory _combatHitRates = combatHitRates();
+    bool[6][2][5] memory _combatHitRates = HydraEngineConfig.combatHitRates();
     bool[6] memory ragdollHitDice = _combatHitRates[combatLevel][0];
     bool[6] memory actorHitDices = _combatHitRates[combatLevel][1];
 
     Actor memory actor = _actorOfAllPlayers[msg.sender];
     int8 gotHitCount;
-    int8 _deathHitPoint = deathHitPoint();
+    int8 _deathHitPoint = HydraEngineConfig.deathHitPoint();
     bool isLive = true;
     uint8 usedDiceCount;
     uint8 index = 200;
@@ -452,7 +448,7 @@ contract HydraEngine {
   }
 
   function unconsciousIn(uint8 regionIndex) internal returns (string[] memory) {
-    _actorOfAllPlayers[msg.sender].hitPoints = deathHitPoint();
+    _actorOfAllPlayers[msg.sender].hitPoints = HydraEngineConfig.deathHitPoint();
     if (_actorOfAllPlayers[msg.sender].isOutdoorOrInWorkshop) {
       string[] memory unconsciousRCode = new string[](2);
       unconsciousRCode[0] = string(abi.encodePacked('1041', toString(regionIndex)));
@@ -538,7 +534,7 @@ contract HydraEngine {
   }
 
   function mapEventHappend(uint8 spentFreedays) internal returns (string[] memory) {
-    uint8[7] memory _eventdaysIndex = eventdaysIndex();
+    uint8[7] memory _eventdaysIndex = HydraEngineConfig.eventdaysIndex();
     for (uint8 i; i < 7; i++) {
       if (_eventdaysIndex[i] == spentFreedays) {
         uint8[4] memory randomEvents;
@@ -561,7 +557,7 @@ contract HydraEngine {
 
   function checkDoomsday() internal returns (string[] memory) {
     TimeTrack memory timeTrack = _timeTrackOfAllPlayers[msg.sender];
-    uint8 _doomsdayCountdown = doomsdayCountdown();
+    uint8 _doomsdayCountdown = HydraEngineConfig.doomsdayCountdown();
 
     if (timeTrack.spentFreedays - timeTrack.delayedDoomsday > _doomsdayCountdown) {
       string[] memory gameOverRCode = gameOver();
@@ -626,57 +622,6 @@ contract HydraEngine {
     _timeTrackOfAllPlayers[msg.sender].spentFreedays = 0;
     _timeTrackOfAllPlayers[msg.sender].handOfGodEnergy = 0;
     _timeTrackOfAllPlayers[msg.sender].delayedDoomsday = 0;
-  }
-
-  function allSpentTimes() public pure returns (uint8[6][6] memory) {
-    uint8[6][6] memory _allSpentTimes;
-    _allSpentTimes[0] = [1, 1, 0, 1, 0, 0];
-    _allSpentTimes[1] = [1, 0, 0, 1, 0, 0];
-    _allSpentTimes[2] = [1, 0, 1, 0, 1, 0];
-    _allSpentTimes[3] = [1, 1, 0, 1, 0, 0];
-    _allSpentTimes[4] = [1, 0, 1, 0, 1, 0];
-    _allSpentTimes[5] = [1, 1, 1, 0, 1, 0];
-    return _allSpentTimes;
-  }
-
-  // [6]true->hit; 2[0]->ragdoll / 2[1]->actor; 5->Lvl
-  function combatHitRates() private pure returns (bool[6][2][5] memory) {
-    bool[6][5] memory ragdollHitDices;
-    ragdollHitDices[0] = [true, false, false, false, false, false];
-    ragdollHitDices[1] = [true, false, false, false, false, false];
-    ragdollHitDices[2] = [true, true, false, false, false, false];
-    ragdollHitDices[3] = [true, true, true, false, false, false];
-    ragdollHitDices[4] = [true, true, true, true, false, false];
-
-    bool[6][5] memory actorHitDices;
-    actorHitDices[0] = [false, false, false, false, true, true];
-    actorHitDices[1] = [false, false, false, false, false, true];
-    actorHitDices[2] = [false, false, false, false, false, true];
-    actorHitDices[3] = [false, false, false, false, false, true];
-    actorHitDices[4] = [false, false, false, false, false, true];
-
-    bool[6][2][5] memory _combatHitRates;
-    for (uint8 i = 0; i < 5; i++) {
-      _combatHitRates[i][0] = ragdollHitDices[i];
-      _combatHitRates[i][1] = actorHitDices[i];
-    }
-    return _combatHitRates;
-  }
-
-  function artifactCheckValue() public pure returns (uint8[6] memory) {
-    return [uint8(4), 4, 4, 4, 4, 4];
-  }
-
-  function deathHitPoint() public pure returns (int8) {
-    return -6;
-  }
-
-  function eventdaysIndex() public pure returns (uint8[7] memory) {
-    return [uint8(2), 5, 8, 11, 14, 17, 20];
-  }
-
-  function doomsdayCountdown() public pure returns (uint8) {
-    return 14;
   }
 
   function mapOfAllPlayers(address playerAddress) external view returns (Map memory) {
