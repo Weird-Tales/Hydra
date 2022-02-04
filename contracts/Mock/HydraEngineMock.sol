@@ -19,6 +19,14 @@ contract HydraEngineMock is HydraEngine {
     emit TestCombating(rCodes);
     return rCodes;
   }
+
+  function _checkArtifactFragmentsInputTop(uint8[16] memory storageInputs) public pure returns (bool) {
+    return checkArtifactFragmentsInputTop(storageInputs);
+  }
+
+  function _inputArraysMappingTo(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex) public pure returns (PlayerInput[2] memory) {
+    return inputArraysMappingTo(inputA, inputAIndex, inputB, inputBIndex);
+  }
   
 /// ---------------------------------------------------------------------------------
   function changeActor_hitPoints_test(int8 value) public {

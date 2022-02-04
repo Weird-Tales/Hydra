@@ -38,6 +38,13 @@ contract HydraEngine {
     uint8 delayedDoomsday;
   }
 
+  struct PlayerInput {
+    /// 1~6
+    uint8 number;
+    /// 0~5
+    uint8 index;
+  }
+
   mapping(address => Map) internal _mapOfAllPlayers; // player address => map data
   mapping(address => Workshop) internal _workshopOfAllPlayers; // player address => workshop data
   mapping(address => Actor) internal _actorOfAllPlayers; // player address => actor data
@@ -68,31 +75,89 @@ contract HydraEngine {
     _;
   }
 
-  // function activatingArtifacts(uint8[2][2] memory inputs) external isPlaying seedIsUnused {
-  //   uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
-  //   playerInputsCheck(inputs, randomNumbers);
+  // struct Workshop {
+  //   uint8[16][6] artifactFragments;
+  //   uint8[10] wastebasket;
+  //   uint[6][6] linkPaths;
+  //   uint8[6] componentsCount;
+  // }
+
+  // function activatingArtifacts(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex, uint8 artifactIndex) external isPlaying seedIsUnused {
   //   Actor memory actor = _actorOfAllPlayers[msg.sender];
   //   require(
   //     actor.isOutdoorOrInWorkshop == false,
   //     'wrong actor position'
   //     );
-  //   uint8[6] memory storageInputs = _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]];
+  //   require(
+  //     artifactIndex < 6,
+  //     'wrong artifactIndex'
+  //     );
+  //   require(
+  //     actor.artifactsStates[1][artifactIndex] == false,
+  //     'cannot be reactivated'
+  //     );
+  //   uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
+  //   playerInputsCheck(inputs, randomNumbers, 8);
+  //   uint8[16] memory storageInputs = _workshopOfAllPlayers[msg.sender].artifactFragments[artifactIndex];
+  //   bool isTop = checkArtifactFragmentsInputTop(storageInputs);
+  //   if (isTop == false) {
+  //     inputs[0][1] = inputs[0][1] + 8;
+  //     inputs[1][1] = inputs[1][1] + 8;
+  //   }
   //   require(
   //     storageInputs[inputs[0][1]] == 0,
   //     'wrong inputs index.0'
   //     );
-  //   require(
-  //     storageInputs[inputs[1][1]] == 0,
-  //     'wrong inputs index.1'
-  //     );
+  //   if (storageInputs[inputs[1][1]] == 0) {
+  //     storageInputs[inputs[0][1]] = inputs[0][0];
+  //     storageInputs[inputs[1][1]] = inputs[1][0];
+  //     _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]] = storageInputs;
+  //   } else {
+
+  //   }
+  //   // 数据格式校验完毕；
+  //   // 如果不擦除；直接写入2个数据
+  //   // 写入第一个，执行擦除，再写入第二个；
+  //   storageInputs[inputs[0][1]] = inputs[0][0];
+  //   storageInputs[inputs[1][1]] = inputs[1][0];
+  //   _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]] = storageInputs;
+  //   uint8 zeroCount = 0;
+  //   for (uint8 i; i < 6; i++) {
+  //     if (storageInputs[i] == 0) {
+  //       zeroCount++;
+  //     }
+  //   }
 
 
-
-  //   require(
-  //     inputs[0][1] != inputs[1][1],
-  //     'wrong inputs same index'
-  //     );
+  //   // require(
+  //   //   storageInputs[inputs[1][1]] == 0,
+  //   //   'wrong inputs index.1'
+  //   //   );
   // }
+
+  function inputArraysMappingTo(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex)
+    internal pure returns (PlayerInput[2] memory playerInputs) {
+    PlayerInput[2] memory _playerInputs;
+    PlayerInput memory playerInputA;
+    playerInputA.number = inputA;
+    playerInputA.index = inputAIndex;
+    _playerInputs[0] = playerInputA;
+
+    PlayerInput memory playerInputB;
+    playerInputB.number = inputB;
+    playerInputB.index = inputBIndex;
+    _playerInputs[1] = playerInputB;
+    return _playerInputs;
+  }
+
+  function checkArtifactFragmentsInputTop(uint8[16] memory storageInputs) internal pure returns (bool isTop) {
+    for (uint8 i; i < 8; i++) {
+      if (storageInputs[i] == 0) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   function startHandOfGodEnergy() external isPlaying {
     TimeTrack memory timeTrack = _timeTrackOfAllPlayers[msg.sender];
@@ -163,13 +228,10 @@ contract HydraEngine {
     emit GameEvents(msg.sender, restingRCode, finallySeedIsUsed);
   }
 
-  function searching(uint8[2][2] memory inputs) external isPlaying seedIsUnused {
+  function searching(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex) external isPlaying seedIsUnused {
     uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
-    playerInputsCheck(inputs, randomNumbers);
-    require(
-      inputs[0][1] != inputs[1][1],
-      'wrong inputs same index'
-      );
+    PlayerInput[2] memory inputs = inputArraysMappingTo(inputA, inputAIndex, inputB, inputBIndex);
+    playerInputsCheck(inputs, randomNumbers, 6);
     Actor memory actor = _actorOfAllPlayers[msg.sender];
     require(
       actor.isOutdoorOrInWorkshop == true,
@@ -177,15 +239,15 @@ contract HydraEngine {
       );
     uint8[6] memory storageInputs = _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]];
     require(
-      storageInputs[inputs[0][1]] == 0,
+      storageInputs[inputs[0].index] == 0,
       'wrong inputs index.0'
       );
     require(
-      storageInputs[inputs[1][1]] == 0,
+      storageInputs[inputs[1].index] == 0,
       'wrong inputs index.1'
       );
-    storageInputs[inputs[0][1]] = inputs[0][0];
-    storageInputs[inputs[1][1]] = inputs[1][0];
+    storageInputs[inputs[0].index] = inputs[0].number;
+    storageInputs[inputs[1].index] = inputs[1].number;
     _mapOfAllPlayers[msg.sender].regions[actor.inMapIndex[0]][actor.inMapIndex[1]] = storageInputs;
     uint8 zeroCount = 0;
     for (uint8 i; i < 6; i++) {
@@ -225,30 +287,34 @@ contract HydraEngine {
     }
   }
 
-  function playerInputsCheck(uint8[2][2] memory inputs, uint8[] memory randomNumbers) internal pure {
+  function playerInputsCheck(PlayerInput[2] memory playerInputs, uint8[] memory randomNumbers, uint8 maxValue) internal pure {
     require(
-      inputs[0][0] != 0 && inputs[0][0] < 7,
+      playerInputs[0].number != 0 && playerInputs[0].number < 7,
       'wrong inputs number.0'
       );
     require(
-      inputs[1][0] != 0 && inputs[1][0] < 7,
+      playerInputs[1].number != 0 && playerInputs[1].number < 7,
       'wrong inputs number.1'
       );
     require(
-      inputs[0][1] < 6,
+      playerInputs[0].index < maxValue,
       'wrong inputs index.0'
       );
     require(
-      inputs[1][1] < 6,
+      playerInputs[1].index < maxValue,
       'wrong inputs index.1'
       );
     require(
-      inputs[0][0] == randomNumbers[0],
+      playerInputs[0].number == randomNumbers[0],
       'wrong inputs random.0'
       );
     require(
-      inputs[1][0] == randomNumbers[1],
+      playerInputs[1].number == randomNumbers[1],
       'wrong inputs random.1'
+      );
+    require(
+      playerInputs[0].index != playerInputs[1].index,
+      'wrong inputs same index'
       );
   }
 
