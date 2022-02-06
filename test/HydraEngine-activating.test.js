@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const HydraEngineMock = artifacts.require('HydraEngineMock');
 const RandomSeedContract = artifacts.require('RandomSeedContract');
 
-contract('HydraEngine-activatingArtifacts', function (accounts) {
+contract('HydraEngine-activating', function (accounts) {
   beforeEach(async function () {
     this.randomSeed = await RandomSeedContract.new();
     await this.randomSeed.requestRandomNumber();
