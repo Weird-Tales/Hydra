@@ -5,10 +5,10 @@ import "./RandomSeedInterface.sol";
 import "./HydraEngineConfig.sol";
 
 contract HydraEngine {
-  enum Artifacts {artifactQ, artifactW, artifactE, artifactR, artifactT, artifactY}
-  enum Components {componentA, componentS, componentD, componentF, componentG, componentH}
-  enum Treasures {treasureZ, treasureX, treasureC, treasureV, treasureB, treasureN}
-  enum Tools {toolJ, toolK, toolL}
+  // enum Artifacts {artifactQ, artifactW, artifactE, artifactR, artifactT, artifactY}
+  // enum Components {componentA, componentS, componentD, componentF, componentG, componentH}
+  // enum Treasures {treasureZ, treasureX, treasureC, treasureV, treasureB, treasureN}
+  // enum Tools {toolJ, toolK, toolL}
 
   struct Map {
     uint8[6][6][6] regions;
@@ -76,60 +76,94 @@ contract HydraEngine {
     _;
   }
 
-  // struct Workshop {
-  //   uint8[16][6] artifactFragments;
-  //   uint8[10] wastebasket;
-  //   uint[6][6] linkPaths;
-  //   uint8[6] componentsCount;
+  // function activating(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex, uint8 artifactIndex) external isPlaying seedIsUnused {
+  //   Actor memory actor = _actorOfAllPlayers[msg.sender];
+  //   require(
+  //     actor.isOutdoorOrInWorkshop == false,
+  //     'wrong actor position'
+  //     );
+  //   require(
+  //     artifactIndex < 6,
+  //     'wrong artifactIndex'
+  //     );
+  //   require(
+  //     actor.artifactsStates[1][artifactIndex] == false,
+  //     'cannot be reactivated'
+  //     );
+  //   uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
+  //   PlayerInput[2] memory inputs = inputArraysMappingTo(inputA, inputAIndex, inputB, inputBIndex);
+  //   playerInputsCheck(inputs, randomNumbers, 8);
+  //   uint8[16] memory storageInputs = _workshopOfAllPlayers[msg.sender].artifactFragments[artifactIndex];
+  //   bool isTop = checkArtifactFragmentsInputTop(storageInputs);
+  //   if (isTop == false) {
+  //     inputs[0].index = inputs[0].index + 8;
+  //     inputs[1].index = inputs[1].index + 8;
+  //   }
+  //   require(
+  //     storageInputs[inputs[0].index] == 0,
+  //     'wrong inputs index.0'
+  //     );
+  //   if (storageInputs[inputs[1].index] == 0) {
+  //     storageInputs[inputs[0].index] = inputs[0].number;
+  //     storageInputs[inputs[1].index] = inputs[1].number;
+  //     _workshopOfAllPlayers[msg.sender].artifactFragments[artifactIndex] = storageInputs;
+  //   } else {
+  //     storageInputs[inputs[0].index] = inputs[0].number;
+  //     storageInputs = removeEmptyFragmentsEnergy(storageInputs);
+  //     require(
+  //       storageInputs[inputs[1].index] == 0,
+  //       'wrong inputs index.1'
+  //       );
+  //     storageInputs[inputs[1].index] = inputs[1].number;
+  //     _workshopOfAllPlayers[msg.sender].artifactFragments[artifactIndex] = storageInputs;
+  //   }
+  //   uint8 zeroCount = 0;
+  //   for (uint8 i; i < 16; i++) {
+  //     if (storageInputs[i] == 0) {
+  //       zeroCount++;
+  //     }
+  //   }
+  //   if (zeroCount == 0) {
+  //     string[] memory searchingRCode = createRCode('20400');
+  //     int16 _operationSearchResult = operationSearchResult(storageInputs);
+  //     if (_operationSearchResult >= 100 || _operationSearchResult <= -1) {
+  //       string[] memory combatingRCode = combating(_operationSearchResult);
+  //       searchingRCode = combination(searchingRCode, combatingRCode);
+  //     } else if (_operationSearchResult >= 11 && _operationSearchResult <= 99) {
+  //       string[] memory foundItRCode = foundIt(2, actor.inMapIndex[0]);
+  //       searchingRCode = combination(searchingRCode, foundItRCode);
+  //     } else if (_operationSearchResult >= 1 && _operationSearchResult <= 10) {
+  //       string[] memory foundItRCode = foundIt(0, actor.inMapIndex[0]);
+  //       searchingRCode = combination(searchingRCode, foundItRCode);
+  //     } else if (_operationSearchResult == 0) {
+  //       string[] memory foundItRCode = foundIt(3, actor.inMapIndex[0]);
+  //       searchingRCode = combination(searchingRCode, foundItRCode);
+  //     }
+  //     uint8[6] memory _spentTimes = HydraEngineConfig.allSpentTimes()[actor.inMapIndex[0]];
+  //     if (_spentTimes[actor.inMapIndex[1]] == 1) {
+  //       (string[] memory usedOneDayRCode, bool seedIsUsed) = usedOneDay();
+  //       emit GameEvents(msg.sender, combination(searchingRCode, usedOneDayRCode), true);
+  //     } else {
+  //       emit GameEvents(msg.sender, searchingRCode, true);
+  //     }
+  //     _actorOfAllPlayers[msg.sender].inMapIndex[1]++;
+  //     RandomSeed.markRandomSeedUsed();
+  //   } else {
+  //     string memory rcodeStr = string(abi.encodePacked('506', toString(actor.inMapIndex[0]), toString(actor.inMapIndex[1])));
+  //     RandomSeed.markRandomSeedUsed();
+  //     emit GameEvents(msg.sender, createRCode(rcodeStr), true);
+  //   }
   // }
 
-  function activatingArtifacts(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex, uint8 artifactIndex) external isPlaying seedIsUnused {
-    Actor memory actor = _actorOfAllPlayers[msg.sender];
-    require(
-      actor.isOutdoorOrInWorkshop == false,
-      'wrong actor position'
-      );
-    require(
-      artifactIndex < 6,
-      'wrong artifactIndex'
-      );
-    require(
-      actor.artifactsStates[1][artifactIndex] == false,
-      'cannot be reactivated'
-      );
-    uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
-    PlayerInput[2] memory inputs = inputArraysMappingTo(inputA, inputAIndex, inputB, inputBIndex);
-    playerInputsCheck(inputs, randomNumbers, 8);
-    uint8[16] memory storageInputs = _workshopOfAllPlayers[msg.sender].artifactFragments[artifactIndex];
-    bool isTop = checkArtifactFragmentsInputTop(storageInputs);
-    if (isTop == false) {
-      inputs[0].index = inputs[0].index + 8;
-      inputs[1].index = inputs[1].index + 8;
-    }
-    require(
-      storageInputs[inputs[0].index] == 0,
-      'wrong inputs index.0'
-      );
-    if (storageInputs[inputs[1].index] == 0) {
-      storageInputs[inputs[0].index] = inputs[0].number;
-      storageInputs[inputs[1].index] = inputs[1].number;
-      _workshopOfAllPlayers[msg.sender].artifactFragments[artifactIndex] = storageInputs;
-    } else {
-
-    }
-    uint8 zeroCount = 0;
-    for (uint8 i; i < 6; i++) {
-      if (storageInputs[i] == 0) {
-        zeroCount++;
-      }
-    }
-
-
-    // require(
-    //   storageInputs[inputs[1][1]] == 0,
-    //   'wrong inputs index.1'
-    //   );
-  }
+  // function operationActivatingResult(uint8[16] memory numbers) internal pure returns (uint8 energy) {
+  //   int16[] memory int16Array = new int16[](6);
+  //   for (uint8 i; i < 6; i++) {
+  //     int16Array[i] = int16(int8(numbers[i]));
+  //   }
+  //   int16 topNumber = int16Array[0] * 100 + int16Array[1] * 10 + int16Array[2] * 1;
+  //   int16 bottomNumber = int16Array[3] * 100 + int16Array[4] * 10 + int16Array[5] * 1;
+  //   return topNumber - bottomNumber;
+  // }
 
   function removeEmptyFragmentsEnergy(uint8[16] memory storageInputs) internal pure returns (uint8[16] memory resultStorageInputs) {
     for (uint8 i; i < 4; i++) {
@@ -238,6 +272,18 @@ contract HydraEngine {
       }
     }
     emit GameEvents(msg.sender, restingRCode, finallySeedIsUsed);
+  }
+
+  function checkGameWin() external isPlaying {
+    Actor memory actor = _actorOfAllPlayers[msg.sender];
+    for (uint8 i; i < 6; i++) {
+      if (actor.artifactsStates[0][i] == true) {
+        _isGameOver[msg.sender] == true;
+        RandomSeed.markRandomSeedUsed();
+        emit GameEvents(msg.sender, createRCode('19999'), true);
+        return;
+      }
+    }
   }
 
   function searching(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex) external isPlaying seedIsUnused {
@@ -510,7 +556,7 @@ contract HydraEngine {
     require(
       inMapRegionIndex < 6,
       'inMapRegionIndex out of range'
-    );
+      );
     uint8[6][6] memory boxes;
     _mapOfAllPlayers[msg.sender].regions[inMapRegionIndex] = boxes;
     return createRCode(string(abi.encodePacked('5030', toString(inMapRegionIndex))));
@@ -572,18 +618,15 @@ contract HydraEngine {
     return createRCode('10000');
   }
   
-  function startGame() external {
-    initGame();
-    // 开始游戏测试，游戏状态。已经开始了，不能再次点开始 TODO
+  function startGame() view external {
+    require(
+      _isGameOver[msg.sender] == true,
+      "can't start again"
+      );
   }
 
   function reStartGame() external {
-    initGame();
     reloadGameData();
-  }
-
-  function initGame() private {
-
   }
 
   function reloadGameData() private {
