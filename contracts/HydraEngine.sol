@@ -9,6 +9,7 @@ contract HydraEngine {
   // enum Components {componentA, componentS, componentD, componentF, componentG, componentH}
   // enum Treasures {treasureZ, treasureX, treasureC, treasureV, treasureB, treasureN}
   // enum Tools {toolJ, toolK, toolL}
+  // Day 的大小写注意 邀请模块需要统计奖金 加上版本号
 
   struct Map {
     uint8[6][6][6] regions;
@@ -70,7 +71,7 @@ contract HydraEngine {
 
   modifier seedIsUnused() {
     require(
-      RandomSeed.checkSeed() == false,
+      RandomSeed.checkSeed(msg.sender) == true,
       'seed is used'
       );
     _;
@@ -287,7 +288,7 @@ contract HydraEngine {
   }
 
   function searching(uint8 inputA, uint8 inputAIndex, uint8 inputB, uint8 inputBIndex) external isPlaying seedIsUnused {
-    uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, false, 0, 2);
+    uint8[] memory randomNumbers = RandomSeed.getRandomNumber(RandomSeed.seedOf(msg.sender), 6, false, 0, 2);
     PlayerInput[2] memory inputs = inputArraysMappingTo(inputA, inputAIndex, inputB, inputBIndex);
     playerInputsCheck(inputs, randomNumbers, 6);
     Actor memory actor = _actorOfAllPlayers[msg.sender];
@@ -331,7 +332,7 @@ contract HydraEngine {
       }
       uint8[6] memory _spentTimes = HydraEngineConfig.allSpentTimes()[actor.inMapIndex[0]];
       if (_spentTimes[actor.inMapIndex[1]] == 1) {
-        (string[] memory usedOneDayRCode, bool seedIsUsed) = usedOneDay();
+        (string[] memory usedOneDayRCode, ) = usedOneDay();
         emit GameEvents(msg.sender, combination(searchingRCode, usedOneDayRCode), true);
       } else {
         emit GameEvents(msg.sender, searchingRCode, true);
@@ -415,7 +416,7 @@ contract HydraEngine {
     uint8 index = 200;
     string[] memory combatingRCode;
     while (isLive || usedDiceCount < 6) {
-      uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, true, index, index + 2);
+      uint8[] memory randomNumbers = RandomSeed.getRandomNumber(RandomSeed.seedOf(msg.sender), 6, true, index, index + 2);
       index = index + 2;
       if (actorHitDices[randomNumbers[0]] == true || actorHitDices[randomNumbers[1]] == true) {
         string memory hitRagdollRCode = string(abi.encodePacked('401', toString(actor.inMapIndex[0]), toString(combatLevel)));
@@ -584,7 +585,7 @@ contract HydraEngine {
     for (uint8 i; i < 7; i++) {
       if (_eventdaysIndex[i] == spentFreedays) {
         uint8[4] memory randomEvents;
-        uint8[] memory randomNumbers = RandomSeed.getRandomNumber(6, true, 2, 6);
+        uint8[] memory randomNumbers = RandomSeed.getRandomNumber(RandomSeed.seedOf(msg.sender), 6, true, 2, 6);
         for (uint8 k; k < 4; k++) {
           randomEvents[k] = randomNumbers[k];
         }
@@ -631,7 +632,7 @@ contract HydraEngine {
 
   function reloadGameData() private {
     // raload game
-    _isGameOver[msg.sender] = true;
+    _isGameOver[msg.sender] = false;
     // raload Map - regions
     uint8[6][6][6] memory regions;
     _mapOfAllPlayers[msg.sender].regions = regions;
@@ -683,6 +684,10 @@ contract HydraEngine {
     return _timeTrackOfAllPlayers[playerAddress];
   }
 
+  function version() external pure returns (string) {
+    return 0.1.1;
+  }
+
   /**
    * @dev Converts a `uint8` to its ASCII `string` decimal representation.
    * OpenZeppelin Contracts v4.4.1 (utils/Strings.sol)
@@ -706,7 +711,7 @@ contract HydraEngine {
     return string(buffer);
   }
 
-  function combination(string[] memory arrayA, string[] memory arrayB) public pure returns (string[] memory) {
+  function combination(string[] memory arrayA, string[] memory arrayB) internal pure returns (string[] memory) {
     uint32 arrayCount;
     for (uint32 i; i < arrayA.length; i++) {
       arrayCount++;

@@ -5,24 +5,42 @@ import "./RandomSeedInterface.sol";
 
 contract RandomSeedContract is RandomSeedInterface {
   struct Seed {
-    bool isUsed;
+    bool isAvailable;
     uint256 seed;
+    address belongAddress;
   }
 
   constructor() { }
 
   mapping(address => bytes32) private rRSIOfAllPlayers; // player address => request Random Seed ID
-  mapping(address => mapping(bytes32 => Seed)) private seedOfAllPlayers; // player address => random seed
+  mapping(bytes32 => Seed) private seedOfAllPlayers; // player address => random seed
 
+  event FulfillEvent(address operator, bytes32 requestId, uint256 seed);
 
-  function requestRandomNumber() external payable returns (bytes32 requestId) {
-    rRSIOfAllPlayers[tx.origin] = 'MockTest';
-    seedOfAllPlayers[tx.origin]['MockTest'].seed = 115792089237316195423570985008687907853269984665640564039458;
-    seedOfAllPlayers[tx.origin]['MockTest'].isUsed = false;
-    return 'MockTest';
+  function requestRandomNumber() external payable returns (bytes32) {
+    bytes32 requestId = 'MockTest';// requestRandomness(keyHash, fee);
+    uint256 mockSeed = 115792089237316195423570985008687907853269984665640564039458; // Mock
+    rRSIOfAllPlayers[tx.origin] = requestId;
+    seedOfAllPlayers[requestId].belongAddress = tx.origin;
+
+    fulfillRandomness(requestId, mockSeed);
+    return requestId;
   }
 
-  function getRandomNumber(uint8 overValue, bool startZero, uint8 rangeStart, uint8 rangeEnd) external view returns (uint8[] memory numbers) {
+  function fulfillRandomness(bytes32 requestId, uint256 randomness) internal {
+    address requestAddress = seedOfAllPlayers[requestId].belongAddress;
+    require(
+      requestAddress == seedOfAllPlayers[requestId].belongAddress,
+      'address mismatch'
+      );
+    seedOfAllPlayers[requestId].seed = randomness;
+    seedOfAllPlayers[requestId].isAvailable = true;
+
+    emit FulfillEvent(requestAddress, requestId, randomness);
+  }
+
+  // 合约调用是 检查种子合法性 TODO: 抽到库内
+  function getRandomNumber(uint256 seed, uint8 overValue, bool startZero, uint8 rangeStart, uint8 rangeEnd) external pure returns (uint8[] memory) {
     require(
       rangeEnd > rangeStart,
       'invalid range'
@@ -31,21 +49,6 @@ contract RandomSeedContract is RandomSeedInterface {
       rangeEnd > 0,
       'invalid range'
       );
-    bytes32 id = rRSIOfAllPlayers[tx.origin];
-    bool isUsed = seedOfAllPlayers[tx.origin][id].isUsed;
-    require(
-      isUsed == false,
-      'random seed is used'
-      );
-    uint256 seed = seedOfAllPlayers[tx.origin][id].seed;
-    require(
-      seed != 0,
-      'need request random number'
-      );
-    return _createRandomNumber(seed, overValue, startZero, rangeStart, rangeEnd);
-  }
-
-  function _createRandomNumber(uint256 seed, uint8 overValue, bool startZero, uint8 rangeStart, uint8 rangeEnd) internal pure returns (uint8[] memory numbers) {
     uint8 count = rangeEnd - rangeStart;
     uint8[] memory expandedValues = new uint8[](count);
     for (uint8 i = rangeStart; i < rangeEnd; i++) {
@@ -59,13 +62,30 @@ contract RandomSeedContract is RandomSeedInterface {
   }
 
   function markRandomSeedUsed() external {
-    bytes32 id = rRSIOfAllPlayers[tx.origin];
-    seedOfAllPlayers[tx.origin][id].isUsed = true;
+    bytes32 requestId = rRSIOfAllPlayers[tx.origin];
+    require(
+      tx.origin == seedOfAllPlayers[requestId].belongAddress,
+      'address mismatch'
+      );
+    seedOfAllPlayers[requestId].isAvailable = false;
   }
 
-  function checkSeed() external view returns (bool isUsed) {
-    bytes32 id = rRSIOfAllPlayers[tx.origin];
-    return seedOfAllPlayers[tx.origin][id].isUsed;
+  function checkSeed(address operator) external view returns (bool) {
+    bytes32 requestId = rRSIOfAllPlayers[operator];
+    require(
+      operator == seedOfAllPlayers[requestId].belongAddress,
+      'address mismatch'
+      );
+    return seedOfAllPlayers[requestId].isAvailable;
+  }
+ 
+  function seedOf(address operator) external view returns (uint256) {
+    bytes32 requestId = rRSIOfAllPlayers[operator];
+    require(
+      operator == seedOfAllPlayers[requestId].belongAddress,
+      'address mismatch'
+      );
+    return seedOfAllPlayers[requestId].seed;
   }
 }
 

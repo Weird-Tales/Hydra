@@ -50,8 +50,8 @@ contract('HydraEngine-searching', function (accounts) {
     it('写入第一次 [5, 0], [2, 1]后，种子是已使用的状态', async function () {
       await this.instance.moveActorTo(true, new BN(1));
       await this.instance.searching(new BN(5), new BN(0), new BN(2), new BN(1));
-      const isUsed = await this.randomSeed.checkSeed();
-      expect(isUsed).to.be.true;
+      const isUsed = await this.randomSeed.checkSeed(accounts[0]);
+      expect(isUsed).to.be.false;
     });
 
     it('写入全部数据 [5, 0], [2, 1]/ [5, 2], [2, 3] / [5, 4], [2, 5]', async function () {
